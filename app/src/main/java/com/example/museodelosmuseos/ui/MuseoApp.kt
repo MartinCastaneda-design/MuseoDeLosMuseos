@@ -131,6 +131,8 @@ fun MuseoApp() {
         }
 
         is DestinoPantalla.DetalleMuseo -> {
+            val detalleViewModel = remember(destino.museoId) {
+                DetalleMuseoViewModel(repository, destino.museoId)
             }
             PantallaDetalleMuseo(
                 viewModel = detalleViewModel,
