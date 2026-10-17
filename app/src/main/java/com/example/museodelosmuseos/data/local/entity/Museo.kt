@@ -24,5 +24,6 @@ data class Museo(
     val longitud: Double,      // Coordenada para OSMDroid
     val urlVisitaVirtual: String,
     val codigoQr: String,      // Código que reconoce el escáner QR
+    val imagenUrl: String = "",
     val proyecto: String = "Red de Museos Virtuales"
 )

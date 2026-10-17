@@ -58,6 +58,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -530,17 +534,29 @@ private fun TarjetaMuseoDestacado(museo: Museo, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp)
+                    .height(100.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(AzulMuseoMedio),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.AccountBalance,
-                    contentDescription = null,
-                    tint = DoradoPatrimonial,
-                    modifier = Modifier.size(38.dp)
-                )
+                if (museo.imagenUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(museo.imagenUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = museo.nombre,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.AccountBalance,
+                        contentDescription = null,
+                        tint = DoradoPatrimonial,
+                        modifier = Modifier.size(38.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -909,12 +925,24 @@ private fun ContenidoCatalogo(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(10.dp))
                             .background(AzulMuseoMedio),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.AccountBalance, contentDescription = null, tint = DoradoBrillante, modifier = Modifier.size(22.dp))
+                        if (museo.imagenUrl.isNotBlank()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(museo.imagenUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = museo.nombre,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Icon(Icons.Filled.AccountBalance, contentDescription = null, tint = DoradoBrillante, modifier = Modifier.size(24.dp))
+                        }
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {

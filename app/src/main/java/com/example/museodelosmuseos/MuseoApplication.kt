@@ -1,6 +1,7 @@
 package com.example.museodelosmuseos
 
 import android.app.Application
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import java.io.File
 
@@ -25,5 +26,13 @@ class MuseoApplication : Application() {
         val osmdroidTileCache = File(osmdroidBasePath, "tiles")
         config.osmdroidBasePath = osmdroidBasePath
         config.osmdroidTileCache = osmdroidTileCache
+
+        // Inicializar Room proactivamente para que los usuarios y museos estén cargados de inmediato
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val db = com.example.museodelosmuseos.data.local.AppDatabase.obtenerInstancia(this@MuseoApplication)
+            if (db.usuarioDao().buscarPorCorreo("admin@museo.org") == null) {
+                com.example.museodelosmuseos.data.local.AppDatabase.precargarDatosIniciales(db)
+            }
+        }
     }
 }

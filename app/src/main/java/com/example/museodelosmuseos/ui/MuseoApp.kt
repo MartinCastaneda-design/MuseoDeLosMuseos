@@ -13,6 +13,8 @@ import com.example.museodelosmuseos.ui.navigation.DestinoPantalla
 import com.example.museodelosmuseos.ui.screens.PantallaBienvenida
 import com.example.museodelosmuseos.ui.screens.dashboard.DashboardViewModel
 import com.example.museodelosmuseos.ui.screens.dashboard.PantallaDashboard
+import com.example.museodelosmuseos.ui.screens.detalle.DetalleMuseoViewModel
+import com.example.museodelosmuseos.ui.screens.detalle.PantallaDetalleMuseo
 import com.example.museodelosmuseos.ui.screens.login.LoginViewModel
 import com.example.museodelosmuseos.ui.screens.login.PantallaLogin
 import com.example.museodelosmuseos.ui.screens.mapa.MapaViewModel
@@ -129,7 +131,13 @@ fun MuseoApp() {
         }
 
         is DestinoPantalla.DetalleMuseo -> {
-            // Se conectará en Pantalla 6
+            }
+            PantallaDetalleMuseo(
+                viewModel = detalleViewModel,
+                onVolver = {
+                    destinoActual = DestinoPantalla.Dashboard
+                }
+            )
         }
 
         is DestinoPantalla.EscanerQr -> {

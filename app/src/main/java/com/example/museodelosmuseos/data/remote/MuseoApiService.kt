@@ -32,8 +32,9 @@ class MuseoApiService {
                 clasificacion = "Arte Colonial",
                 latitud = 4.5975,
                 longitud = -74.0758,
-                urlVisitaVirtual = "https://museocolonial.gov.co/recorrido-virtual",
-                codigoQr = "MUSEO_COLONIAL_BOGOTA"
+                urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-colonial",
+                codigoQr = "MUSEO_COLONIAL_BOGOTA",
+                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Museo_Colonial_Bogot%C3%A1.jpg/800px-Museo_Colonial_Bogot%C3%A1.jpg"
             ),
             Museo(
                 nombre = "Museo Nacional de Bellas Artes",
@@ -43,8 +44,9 @@ class MuseoApiService {
                 clasificacion = "Bellas Artes",
                 latitud = -33.4358,
                 longitud = -70.6433,
-                urlVisitaVirtual = "https://www.mnba.gob.cl/recorrido-virtual",
-                codigoQr = "MUSEO_BELLAS_ARTES_CHILE"
+                urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-nacional-de-bellas-artes-chile",
+                codigoQr = "MUSEO_BELLAS_ARTES_CHILE",
+                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg/800px-Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg"
             ),
             Museo(
                 nombre = "Museo Nacional del Prado",
@@ -54,8 +56,9 @@ class MuseoApiService {
                 clasificacion = "Historia y Pintura",
                 latitud = 40.4138,
                 longitud = -3.6921,
-                urlVisitaVirtual = "https://www.museodelprado.es/coleccion/obras-de-arte",
-                codigoQr = "MUSEO_PRADO_MADRID"
+                urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-del-prado",
+                codigoQr = "MUSEO_PRADO_MADRID",
+                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/800px-Museo_del_Prado_2016_%2825185969599%29.jpg"
             ),
             Museo(
                 nombre = "Museo de Arte Moderno",
@@ -65,8 +68,9 @@ class MuseoApiService {
                 clasificacion = "Arte Moderno",
                 latitud = 19.4225,
                 longitud = -99.1795,
-                urlVisitaVirtual = "https://mam.inba.gob.mx/visitas-virtuales",
-                codigoQr = "MUSEO_MAM_MEXICO"
+                urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-de-arte-moderno-mexico",
+                codigoQr = "MUSEO_MAM_MEXICO",
+                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Museo_de_Arte_Moderno_%28MAM%29_-_Ciudad_de_M%C3%A9xico.jpg/800px-Museo_de_Arte_Moderno_%28MAM%29_-_Ciudad_de_M%C3%A9xico.jpg"
             ),
             Museo(
                 nombre = "Museo de Arte de Lima (MALI)",
@@ -76,8 +80,9 @@ class MuseoApiService {
                 clasificacion = "Arte y Arqueología",
                 latitud = -12.0601,
                 longitud = -77.0369,
-                urlVisitaVirtual = "https://mali.pe/visita-virtual",
-                codigoQr = "MUSEO_MALI_LIMA"
+                urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-de-arte-de-lima-mali",
+                codigoQr = "MUSEO_MALI_LIMA",
+                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Palacio_de_la_Exposici%C3%B3n_%28MALI%29_Lima_Peru.jpg/800px-Palacio_de_la_Exposici%C3%B3n_%28MALI%29_Lima_Peru.jpg"
             )
         )
     }
