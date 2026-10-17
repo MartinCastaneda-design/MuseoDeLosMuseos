@@ -93,7 +93,7 @@ class LoginViewModel(
         viewModelScope.launch {
             val resultado = repository.iniciarSesion(
                 correo = actual.correo.valor.trim(),
-                contrasena = actual.contrasena.valor
+                contrasena = actual.contrasena.valor.trim()
             )
 
             resultado.fold(
@@ -124,7 +124,7 @@ class LoginViewModel(
 
     private fun validarContrasena(valor: String): String? = when {
         valor.isBlank() -> "La contraseña es obligatoria"
-        valor.length < 4 -> "Escribe al menos 4 caracteres"
+        valor.trim().length < 6 -> "Escribe al menos 6 caracteres"
         else -> null
     }
 }
