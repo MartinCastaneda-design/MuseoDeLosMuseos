@@ -12,6 +12,10 @@ import com.example.museodelosmuseos.data.local.AppDatabase
 import com.example.museodelosmuseos.data.repository.MuseoRepository
 import com.example.museodelosmuseos.ui.navigation.DestinoPantalla
 import com.example.museodelosmuseos.ui.screens.PantallaBienvenida
+import com.example.museodelosmuseos.ui.screens.login.LoginViewModel
+import com.example.museodelosmuseos.ui.screens.login.PantallaLogin
+import com.example.museodelosmuseos.ui.screens.registro.PantallaRegistro
+import com.example.museodelosmuseos.ui.screens.registro.RegistroViewModel
 
 /**
  * ============================================================================
@@ -28,6 +32,7 @@ fun MuseoApp() {
     // Instancia única del repositorio para toda la jerarquía de vistas
     val database = remember { AppDatabase.obtenerInstancia(context) }
     val repository = remember { MuseoRepository(database) }
+    val registroViewModel = remember(repository) { RegistroViewModel(repository) }
 
     // Estado reactivo de navegación (Single Source of Truth para la vista activa)
     var destinoActual by remember { mutableStateOf<DestinoPantalla>(DestinoPantalla.Bienvenida) }
@@ -59,11 +64,15 @@ fun MuseoApp() {
         }
 
         is DestinoPantalla.Registro -> {
-            // Se conectará en el siguiente paso (Pantalla 2)
-            PantallaBienvenida(
-                onComenzarClick = {},
-                onIniciarSesionClick = {},
-                onExplorarMapaClick = {}
+            PantallaRegistro(
+                viewModel = registroViewModel,
+                onVolver = volverABienvenida,
+                onRegistroExitoso = {
+                    destinoActual = DestinoPantalla.Dashboard
+                },
+                onIrALogin = {
+                    destinoActual = DestinoPantalla.Login
+                }
             )
         }
 
