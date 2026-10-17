@@ -2,10 +2,21 @@ package com.example.museodelosmuseos.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Paleta institucional "Museo de los Museos"
+val AzulMuseoProfundo = Color(0xFF0F2027)
+val AzulMuseoMedio = Color(0xFF203A43)
+val AzulMuseoSuperficie = Color(0xFF2C5364)
+val AzulCard = Color(0xFF1E323D)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val DoradoPatrimonial = Color(0xFFD4A373)
+val DoradoBrillante = Color(0xFFE9C46A)
+val Terracota = Color(0xFFE76F51)
+
+val TextoPrimario = Color(0xFFF8F9FA)
+val TextoSecundario = Color(0xFFCFD8DC)
+val TextoApagado = Color(0xFF90A4AE)
+
+val FondoOscuro = Color(0xFF0D1B22)
+val SuperficieCard = Color(0xFF162A36)
+val ErrorRojo = Color(0xFFE63946)
+val VerdeExito = Color(0xFF2A9D8F)
