@@ -6,13 +6,18 @@ import com.example.museodelosmuseos.data.local.entity.HistorialQr
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.data.local.entity.Usuario
+import com.example.museodelosmuseos.data.remote.MuseoApiService
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Repositorio central que desacopla los ViewModels de la base de datos Room.
  * Proporciona operaciones seguras para autenticación, museos, favoritos e historial QR.
+ * Implementa caché local en SQLite respaldada por una API REST ficticia.
  */
-class MuseoRepository(private val database: AppDatabase) {
+class MuseoRepository(
+    private val database: AppDatabase,
+    private val apiService: MuseoApiService = MuseoApiService()
+) {
 
     private val usuarioDao = database.usuarioDao()
     private val museoDao = database.museoDao()
@@ -99,6 +104,21 @@ class MuseoRepository(private val database: AppDatabase) {
     suspend fun buscarMuseoPorQr(codigoQr: String): Museo? = museoDao.buscarPorCodigoQr(codigoQr)
 
     suspend fun guardarMuseo(museo: Museo): Long = museoDao.insertar(museo)
+
+    /**
+     * Consulta la API REST ficticia y actualiza la caché local en SQLite (Room).
+     * Satisface el requerimiento de la pauta:
+     * "Consulta datos de una API REST ficticia... puede usar SQLite como caché"
+     */
+    suspend fun sincronizarMuseosRemotos(): Result<Int> {
+        return try {
+            val museosRemotos = apiService.obtenerMuseosIberoamerica()
+            museoDao.insertarSiNoExisten(museosRemotos)
+            Result.success(museosRemotos.size)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     // --- FAVORITOS (POR USUARIO) ---
     fun esFavorito(usuarioId: Long, museoId: Long): Flow<Boolean> =

@@ -15,6 +15,8 @@ import com.example.museodelosmuseos.ui.screens.dashboard.DashboardViewModel
 import com.example.museodelosmuseos.ui.screens.dashboard.PantallaDashboard
 import com.example.museodelosmuseos.ui.screens.login.LoginViewModel
 import com.example.museodelosmuseos.ui.screens.login.PantallaLogin
+import com.example.museodelosmuseos.ui.screens.mapa.MapaViewModel
+import com.example.museodelosmuseos.ui.screens.mapa.PantallaMapa
 import com.example.museodelosmuseos.ui.screens.registro.PantallaRegistro
 import com.example.museodelosmuseos.ui.screens.registro.RegistroViewModel
 
@@ -36,6 +38,7 @@ fun MuseoApp() {
     val registroViewModel = remember(repository) { RegistroViewModel(repository) }
     val loginViewModel = remember(repository) { LoginViewModel(repository) }
     val dashboardViewModel = remember(repository) { DashboardViewModel(repository) }
+    val mapaViewModel = remember(repository) { MapaViewModel(repository) }
 
     // Estado reactivo de navegación (Single Source of Truth para la vista activa)
     var destinoActual by remember { mutableStateOf<DestinoPantalla>(DestinoPantalla.Bienvenida) }
@@ -44,7 +47,12 @@ fun MuseoApp() {
     val volverABienvenida = { destinoActual = DestinoPantalla.Bienvenida }
 
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
-        volverABienvenida()
+        when (destinoActual) {
+            is DestinoPantalla.Mapa,
+            is DestinoPantalla.DetalleMuseo,
+            is DestinoPantalla.EscanerQr -> destinoActual = DestinoPantalla.Dashboard
+            else -> volverABienvenida()
+        }
     }
 
     // Conmutador reactivo de pantallas (UDF)
@@ -109,11 +117,14 @@ fun MuseoApp() {
         }
 
         is DestinoPantalla.Mapa -> {
-            // Se conectará en Pantalla 5
-            PantallaBienvenida(
-                onComenzarClick = {},
-                onIniciarSesionClick = {},
-                onExplorarMapaClick = {}
+            PantallaMapa(
+                viewModel = mapaViewModel,
+                onVolver = {
+                    destinoActual = DestinoPantalla.Dashboard
+                },
+                onNavegarADetalle = { museoId ->
+                    destinoActual = DestinoPantalla.DetalleMuseo(museoId)
+                }
             )
         }
 
