@@ -15,6 +15,8 @@ import com.example.museodelosmuseos.ui.screens.dashboard.DashboardViewModel
 import com.example.museodelosmuseos.ui.screens.dashboard.PantallaDashboard
 import com.example.museodelosmuseos.ui.screens.detalle.DetalleMuseoViewModel
 import com.example.museodelosmuseos.ui.screens.detalle.PantallaDetalleMuseo
+import com.example.museodelosmuseos.ui.screens.escaner.EscanerQrViewModel
+import com.example.museodelosmuseos.ui.screens.escaner.PantallaEscanerQr
 import com.example.museodelosmuseos.ui.screens.login.LoginViewModel
 import com.example.museodelosmuseos.ui.screens.login.PantallaLogin
 import com.example.museodelosmuseos.ui.screens.mapa.MapaViewModel
@@ -41,6 +43,7 @@ fun MuseoApp() {
     val loginViewModel = remember(repository) { LoginViewModel(repository) }
     val dashboardViewModel = remember(repository) { DashboardViewModel(repository) }
     val mapaViewModel = remember(repository) { MapaViewModel(repository) }
+    val escanerViewModel = remember(repository) { EscanerQrViewModel(repository) }
 
     // Estado reactivo de navegación (Single Source of Truth para la vista activa)
     var destinoActual by remember { mutableStateOf<DestinoPantalla>(DestinoPantalla.Bienvenida) }
@@ -143,7 +146,15 @@ fun MuseoApp() {
         }
 
         is DestinoPantalla.EscanerQr -> {
-            // Se conectará en Pantalla 7
+            PantallaEscanerQr(
+                viewModel = escanerViewModel,
+                onVolver = {
+                    destinoActual = DestinoPantalla.Dashboard
+                },
+                onNavegarAResultado = { resultado ->
+                    destinoActual = resultado
+                }
+            )
         }
 
         is DestinoPantalla.ResultadoQr -> {
