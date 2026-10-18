@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Códigos QR - Museo de los Museos (DSY1105)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background: #0B132B;
+      color: #FFFFFF;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      text-align: center;
+      max-width: 800px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      color: #C5A059;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    p.subtitulo {
+      color: #A0B2C6;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .instrucciones {
+      background: #1C2541;
+      border: 1px solid #3A506B;
+      border-radius: 12px;
+      padding: 16px 20px;
+      max-width: 800px;
+      margin-bottom: 30px;
+      line-height: 1.6;
+      font-size: 14px;
+      color: #E0E6ED;
+    }
+    .instrucciones strong {
+      color: #FFD166;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      width: 100%;
+    }
+    .card {
+      background: #1C2541;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid rgba(197, 160, 89, 0.3);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #C5A059;
+    }
+    .card.error-card {
+      border-color: rgba(239, 71, 111, 0.4);
+    }
+    .card.error-card:hover {
+      border-color: #EF476F;
+    }
+    .qr-container {
+      background: #FFFFFF;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .qr-container img {
+      display: block;
+      width: 180px;
+      height: 180px;
+    }
+    .nombre {
+      font-size: 17px;
+      font-weight: bold;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+    .pais {
+      font-size: 13px;
+      color: #C5A059;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .codigo-texto {
+      background: rgba(11, 19, 43, 0.7);
+      border: 1px dashed #3A506B;
+      color: #FFD166;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+      word-break: break-all;
+    }
+    .error-tag {
+      color: #EF476F;
+      font-weight: 600;
+    }
+    footer {
+      margin-top: 40px;
+      color: #6C7A89;
+      font-size: 13px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🏛️ Museo de los Museos — Códigos QR Oficiales</h1>
+    <p class="subtitulo">
+      Escanea estos códigos directamente desde la pantalla de tu computadora usando la cámara de la aplicación Android.
+    </p>
+  </header>
+
+  <div class="instrucciones">
+    💡 <strong>¿Cómo probarlos?</strong><br>
+    1. Abre la app <em>Museo de los Museos</em> en tu teléfono o emulador.<br>
+    2. Entra a la <strong>Pantalla 7: Escáner QR</strong> (pestaña central o botón de escáner).<br>
+    3. Apunta la cámara a cualquiera de los códigos QR de abajo.<br>
+    4. La app reconocerá el código instantáneamente y te llevará a la <strong>Pantalla 8: Resultado QR</strong> con la animación de lectura exitosa, imagen, descripción y botón para abrir su ficha patrimonial con el recorrido virtual 360°.
+  </div>
+
+  <div class="grid">
+    <!-- QR 1 -->
+    <div class="card">
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=MUSEO_BELLAS_ARTES_CHILE" alt="QR Museo Bellas Artes Chile">
+      </div>
+      <div class="nombre">Museo Nacional de Bellas Artes</div>
+      <div class="pais">🇨🇱 Santiago, Chile • Bellas Artes</div>
+      <div class="codigo-texto">MUSEO_BELLAS_ARTES_CHILE</div>
+    </div>
+
+    <!-- QR 2 -->
+    <div class="card">
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=MUSEO_PRADO_MADRID" alt="QR Museo del Prado Madrid">
+      </div>
+      <div class="nombre">Museo Nacional del Prado</div>
+      <div class="pais">🇪🇸 Madrid, España • Historia y Pintura</div>
+      <div class="codigo-texto">MUSEO_PRADO_MADRID</div>
+    </div>
+
+    <!-- QR 3 -->
+    <div class="card">
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=MUSEO_COLONIAL_BOGOTA" alt="QR Museo Colonial Bogotá">
+      </div>
+      <div class="nombre">Museo de Arte Colonial</div>
+      <div class="pais">🇨🇴 Bogotá, Colombia • Arte Colonial</div>
+      <div class="codigo-texto">MUSEO_COLONIAL_BOGOTA</div>
+    </div>
+
+    <!-- QR 4 -->
+    <div class="card">
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=MUSEO_MAM_MEXICO" alt="QR Museo de Arte Moderno México">
+      </div>
+      <div class="nombre">Museo de Arte Moderno</div>
+      <div class="pais">🇲🇽 Ciudad de México, México • Arte Moderno</div>
+      <div class="codigo-texto">MUSEO_MAM_MEXICO</div>
+    </div>
+
+    <!-- QR 5 -->
+    <div class="card">
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=MUSEO_MALI_LIMA" alt="QR Museo de Arte de Lima">
+      </div>
+      <div class="nombre">Museo de Arte de Lima (MALI)</div>
+      <div class="pais">🇵🇪 Lima, Perú • Arte y Arqueología</div>
+      <div class="codigo-texto">MUSEO_MALI_LIMA</div>
+    </div>
+
+    <!-- QR 6: Inválido para probar el manejo de error de la pauta -->
+    <div class="card error-card">
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=CODIGO_MUSEO_DESCONOCIDO_999" alt="QR Inválido / Desconocido">
+      </div>
+      <div class="nombre error-tag">⚠️ Código No Registrado</div>
+      <div class="pais" style="color: #EF476F;">Prueba de Error / Código Inválido</div>
+      <div class="codigo-texto" style="color: #EF476F; border-color: #EF476F;">CODIGO_MUSEO_DESCONOCIDO_999</div>
+    </div>
+  </div>
+
+  <footer>
+    Proyecto Duoc UC — DSY1105 Desarrollo de Aplicaciones Móviles
+  </footer>
+
+</body>
+</html>

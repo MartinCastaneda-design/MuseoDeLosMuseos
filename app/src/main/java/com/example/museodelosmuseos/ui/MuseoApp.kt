@@ -23,6 +23,8 @@ import com.example.museodelosmuseos.ui.screens.mapa.MapaViewModel
 import com.example.museodelosmuseos.ui.screens.mapa.PantallaMapa
 import com.example.museodelosmuseos.ui.screens.registro.PantallaRegistro
 import com.example.museodelosmuseos.ui.screens.registro.RegistroViewModel
+import com.example.museodelosmuseos.ui.screens.resultadoqr.PantallaResultadoQr
+import com.example.museodelosmuseos.ui.screens.resultadoqr.ResultadoQrViewModel
 
 /**
  * ============================================================================
@@ -53,6 +55,7 @@ fun MuseoApp() {
 
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
         when (destinoActual) {
+            is DestinoPantalla.ResultadoQr -> destinoActual = DestinoPantalla.EscanerQr
             is DestinoPantalla.Mapa,
             is DestinoPantalla.DetalleMuseo,
             is DestinoPantalla.EscanerQr -> destinoActual = DestinoPantalla.Dashboard
@@ -158,7 +161,18 @@ fun MuseoApp() {
         }
 
         is DestinoPantalla.ResultadoQr -> {
-            // Se conectará en Pantalla 8
+            val resultadoViewModel = remember(destino) {
+                ResultadoQrViewModel(repository, destino)
+            }
+            PantallaResultadoQr(
+                viewModel = resultadoViewModel,
+                onVolverAEscanear = {
+                    destinoActual = DestinoPantalla.EscanerQr
+                },
+                onNavegarAFicha = { museoId ->
+                    destinoActual = DestinoPantalla.DetalleMuseo(museoId)
+                }
+            )
         }
     }
 }

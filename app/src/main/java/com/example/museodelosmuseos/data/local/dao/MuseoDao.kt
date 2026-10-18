@@ -32,7 +32,13 @@ interface MuseoDao {
     @Query("SELECT * FROM museos WHERE id = :id LIMIT 1")
     suspend fun obtenerPorId(id: Long): Museo?
 
-    @Query("SELECT * FROM museos WHERE UPPER(codigoQr) = UPPER(:codigoQr) LIMIT 1")
+    @Query("""
+        SELECT * FROM museos 
+        WHERE UPPER(codigoQr) = UPPER(:codigoQr) 
+           OR UPPER(urlVisitaVirtual) = UPPER(:codigoQr)
+           OR :codigoQr LIKE '%' || codigoQr || '%'
+        LIMIT 1
+    """)
     suspend fun buscarPorCodigoQr(codigoQr: String): Museo?
 
     @Query("SELECT * FROM museos WHERE pais = :pais ORDER BY nombre ASC")
