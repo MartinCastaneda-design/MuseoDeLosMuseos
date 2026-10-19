@@ -4,17 +4,23 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.museodelosmuseos.data.local.dao.ArticuloCatalogoDao
+import com.example.museodelosmuseos.data.local.dao.ControlInicializacionDao
 import com.example.museodelosmuseos.data.local.dao.FavoritoDao
 import com.example.museodelosmuseos.data.local.dao.HistorialQrDao
 import com.example.museodelosmuseos.data.local.dao.MuseoDao
 import com.example.museodelosmuseos.data.local.dao.SesionDao
 import com.example.museodelosmuseos.data.local.dao.UsuarioDao
+import com.example.museodelosmuseos.data.local.entity.ArticuloCatalogo
+import com.example.museodelosmuseos.data.local.entity.ControlInicializacion
 import com.example.museodelosmuseos.data.local.entity.FavoritoMuseo
 import com.example.museodelosmuseos.data.local.entity.HistorialQr
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.data.local.entity.Usuario
+import com.example.museodelosmuseos.data.model.CategoriaArticulo
 import com.example.museodelosmuseos.data.model.Rol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +28,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Base de datos Room del proyecto Museo de los Museos.
- * Maneja usuarios, museos de Iberoamérica, favoritos por perfil, historial de QR y sesión.
+ * Maneja usuarios, museos de Iberoamérica, favoritos por perfil, historial de QR, sesión
+ * y el catálogo de productos y cursos (Pantalla 9).
  */
 @Database(
     entities = [
@@ -30,9 +37,11 @@ import kotlinx.coroutines.launch
         Museo::class,
         FavoritoMuseo::class,
         HistorialQr::class,
-        SesionActiva::class
+        SesionActiva::class,
+        ArticuloCatalogo::class,
+        ControlInicializacion::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,9 +51,49 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun favoritoDao(): FavoritoDao
     abstract fun historialQrDao(): HistorialQrDao
     abstract fun sesionDao(): SesionDao
+    abstract fun articuloCatalogoDao(): ArticuloCatalogoDao
+    abstract fun controlInicializacionDao(): ControlInicializacionDao
 
     companion object {
         const val NOMBRE_BD = "museo_de_los_museos.db"
+        const val CLAVE_CATALOGO_PRECARGADO = "CATALOGO_PRECARGADO_V1"
+
+        /**
+         * Migración no destructiva de la versión 2 a la 3:
+         * Crea las tablas `articulos_catalogo` y `control_inicializacion` con sus respectivos
+         * índices sin eliminar los registros previos de usuarios, museos o favoritos.
+         */
+        val MIGRACION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `articulos_catalogo` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `titulo` TEXT NOT NULL,
+                        `descripcion` TEXT NOT NULL,
+                        `categoria` TEXT NOT NULL,
+                        `precio` REAL NOT NULL,
+                        `imagenUrl` TEXT NOT NULL,
+                        `disponible` INTEGER NOT NULL,
+                        `activo` INTEGER NOT NULL,
+                        `stock` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_articulos_catalogo_categoria` ON `articulos_catalogo` (`categoria`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_articulos_catalogo_activo` ON `articulos_catalogo` (`activo`)")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `control_inicializacion` (
+                        `clave` TEXT NOT NULL,
+                        `valor` TEXT NOT NULL,
+                        `fechaTimestamp` INTEGER NOT NULL,
+                        PRIMARY KEY(`clave`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
 
         @Volatile
         private var INSTANCIA: AppDatabase? = null
@@ -56,6 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     NOMBRE_BD
                 )
+                    .addMigrations(MIGRACION_2_3)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
@@ -67,11 +117,13 @@ abstract class AppDatabase : RoomDatabase() {
 
                         override fun onOpen(db: SupportSQLiteDatabase) {
                             super.onOpen(db)
-                            // Garantiza que tras una migración o apertura la BD nunca quede vacía
+                            // Garantiza que tras una migración o apertura la BD nunca quede vacía,
+                            // respetando la bandera persistente de precarga única
                             CoroutineScope(Dispatchers.IO).launch {
                                 val dbInstancia = obtenerInstancia(context)
                                 val adminExiste = dbInstancia.usuarioDao().buscarPorCorreo("admin@museo.org")
-                                if (adminExiste == null) {
+                                val yaPrecargado = dbInstancia.controlInicializacionDao().existeClave(CLAVE_CATALOGO_PRECARGADO) > 0
+                                if (adminExiste == null || !yaPrecargado) {
                                     precargarDatosIniciales(dbInstancia)
                                 }
                             }
@@ -84,8 +136,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * Inserta usuarios y museos de demostración para que la aplicación
-         * esté lista para evaluar desde la primera ejecución.
+         * Inserta usuarios, museos y artículos del catálogo de demostración
+         * para que la aplicación esté lista para evaluar desde la primera ejecución.
          */
         suspend fun precargarDatosIniciales(database: AppDatabase) {
             val usuariosDemo = listOf(
@@ -176,6 +228,114 @@ abstract class AppDatabase : RoomDatabase() {
                 )
             )
             database.museoDao().insertarSiNoExisten(museosDemo)
+
+            // ---- ARTÍCULOS DE CATÁLOGO (PANTALLA 9) CON IDs ESTABLES ----
+            // Se verifica la bandera persistente en Room para asegurar una única inserción inicial.
+            // Si el administrador modificó, desactivó o eliminó artículos, sus cambios no se sobrescribirán.
+            val controlDao = database.controlInicializacionDao()
+            val yaPrecargadoCatalogo = controlDao.existeClave(CLAVE_CATALOGO_PRECARGADO) > 0
+
+            if (!yaPrecargadoCatalogo) {
+                val articulosDemo = listOf(
+                    // 1. CURSOS
+                    ArticuloCatalogo(
+                        id = 1L,
+                        titulo = "Curso Virtual: Conservación y Restauración Textil",
+                        descripcion = "Taller intensivo de 4 semanas sobre métodos científicos de preservación preventiva y cuidado de fibras ancestrales andinas.",
+                        categoria = CategoriaArticulo.CURSO.name,
+                        precio = 45990.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Museo_Colonial_Bogot%C3%A1.jpg/800px-Museo_Colonial_Bogot%C3%A1.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 15
+                    ),
+                    ArticuloCatalogo(
+                        id = 2L,
+                        titulo = "Diplomado: Curaduría Digital y Museología Iberoamericana",
+                        descripcion = "Especialización de 6 semanas con certificación académica en diseño de salas virtuales y mediación cultural contemporánea.",
+                        categoria = CategoriaArticulo.CURSO.name,
+                        precio = 72000.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg/800px-Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 20
+                    ),
+
+                    // 2. PUBLICACIONES
+                    ArticuloCatalogo(
+                        id = 3L,
+                        titulo = "Catálogo Razonado: Pintura Virreinal en Iberoamérica",
+                        descripcion = "Libro de tapa dura con más de 300 páginas de estudios críticos, catalogación razonada e ilustraciones a todo color.",
+                        categoria = CategoriaArticulo.PUBLICACION.name,
+                        precio = 28990.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/800px-Museo_del_Prado_2016_%2825185969599%29.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 8
+                    ),
+                    ArticuloCatalogo(
+                        id = 4L,
+                        titulo = "Manual de Gestión y Conservación para Museos Locales",
+                        descripcion = "Guía metodológica para la administración de archivos comunitarios, inventarios patrimoniales y protocolos de seguridad.",
+                        categoria = CategoriaArticulo.PUBLICACION.name,
+                        precio = 16500.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Palacio_de_la_Exposici%C3%B3n_%28MALI%29_Lima_Peru.jpg/800px-Palacio_de_la_Exposici%C3%B3n_%28MALI%29_Lima_Peru.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 12
+                    ),
+
+                    // 3. ARTÍCULOS MUSEOLÓGICOS
+                    ArticuloCatalogo(
+                        id = 5L,
+                        titulo = "Lámina Giclée de Colección: Retablo Colonial",
+                        descripcion = "Impresión de alta fidelidad en papel de algodón de 310g con tintas minerales resistentes a rayos ultravioleta.",
+                        categoria = CategoriaArticulo.ARTICULO_MUSEOLOGICO.name,
+                        precio = 19990.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Museo_Colonial_Bogot%C3%A1.jpg/800px-Museo_Colonial_Bogot%C3%A1.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 25
+                    ),
+                    ArticuloCatalogo(
+                        id = 6L,
+                        titulo = "Réplica Museográfica Autorizada: Cerámica Mochica",
+                        descripcion = "Reproducción a escala 1:1 en arcilla curada y policromada con sello de autenticidad institucional.",
+                        categoria = CategoriaArticulo.ARTICULO_MUSEOLOGICO.name,
+                        precio = 34990.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Museo_de_Arte_Moderno_%28MAM%29_-_Ciudad_de_M%C3%A9xico.jpg/800px-Museo_de_Arte_Moderno_%28MAM%29_-_Ciudad_de_M%C3%A9xico.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 5
+                    ),
+
+                    // 4. MATERIALES DE CONSERVACIÓN
+                    ArticuloCatalogo(
+                        id = 7L,
+                        titulo = "Kit de Limpieza y Estabilización de Metales Antiguos",
+                        descripcion = "Compuesto por cera microcristalina Cosmoloid, solventes neutros desengrasantes y juego de pinceles técnicos.",
+                        categoria = CategoriaArticulo.MATERIAL_CONSERVACION.name,
+                        precio = 24900.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg/800px-Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg",
+                        disponible = true,
+                        activo = true,
+                        stock = 10
+                    ),
+                    ArticuloCatalogo(
+                        id = 8L,
+                        titulo = "Sobres de Archivo de Papel Japonés con pH Neutro (50 u.)",
+                        descripcion = "Fundas libres de ácido y lignina para el resguardo de material gráfico antiguo, estampas y manuscritos.",
+                        categoria = CategoriaArticulo.MATERIAL_CONSERVACION.name,
+                        precio = 18500.0,
+                        imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/800px-Museo_del_Prado_2016_%2825185969599%29.jpg",
+                        disponible = false,
+                        activo = true,
+                        stock = 0
+                    )
+                )
+                database.articuloCatalogoDao().insertarSiNoExisten(articulosDemo)
+                controlDao.registrar(ControlInicializacion(clave = CLAVE_CATALOGO_PRECARGADO))
+            }
 
             // Iniciar con la sesión demo de María Fernanda (Cliente) activa por defecto
             val usuarioCliente = database.usuarioDao().buscarPorCorreo("maria@email.com")

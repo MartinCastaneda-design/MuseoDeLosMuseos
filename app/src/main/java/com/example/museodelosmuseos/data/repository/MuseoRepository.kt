@@ -1,6 +1,7 @@
 package com.example.museodelosmuseos.data.repository
 
 import com.example.museodelosmuseos.data.local.AppDatabase
+import com.example.museodelosmuseos.data.local.entity.ArticuloCatalogo
 import com.example.museodelosmuseos.data.local.entity.FavoritoMuseo
 import com.example.museodelosmuseos.data.local.entity.HistorialQr
 import com.example.museodelosmuseos.data.local.entity.Museo
@@ -24,6 +25,7 @@ class MuseoRepository(
     private val favoritoDao = database.favoritoDao()
     private val historialQrDao = database.historialQrDao()
     private val sesionDao = database.sesionDao()
+    private val articuloCatalogoDao = database.articuloCatalogoDao()
 
     // --- SESIÓN Y USUARIOS ---
     fun observarSesion(): Flow<SesionActiva?> = sesionDao.observarSesion()
@@ -149,5 +151,62 @@ class MuseoRepository(
             fechaTimestamp = System.currentTimeMillis()
         )
         historialQrDao.guardarLectura(registro)
+    }
+
+    // --- CATÁLOGO DE PRODUCTOS Y CURSOS (PANTALLA 9) ---
+    fun observarCatalogo(soloActivos: Boolean = true): Flow<List<ArticuloCatalogo>> {
+        return if (soloActivos) {
+            articuloCatalogoDao.observarActivos()
+        } else {
+            articuloCatalogoDao.observarTodos()
+        }
+    }
+
+    fun observarCatalogoPorCategoria(categoria: String): Flow<List<ArticuloCatalogo>> =
+        articuloCatalogoDao.observarPorCategoria(categoria)
+
+    fun observarArticuloCatalogo(id: Long): Flow<ArticuloCatalogo?> =
+        articuloCatalogoDao.observarPorId(id)
+
+    suspend fun obtenerArticuloCatalogo(id: Long): ArticuloCatalogo? =
+        articuloCatalogoDao.obtenerPorId(id)
+
+    suspend fun guardarArticuloCatalogo(articulo: ArticuloCatalogo): Long =
+        articuloCatalogoDao.insertar(articulo)
+
+    suspend fun actualizarArticuloCatalogo(articulo: ArticuloCatalogo) {
+        articuloCatalogoDao.actualizar(articulo)
+    }
+
+    suspend fun cambiarDisponibilidadArticulo(id: Long, disponible: Boolean) {
+        articuloCatalogoDao.actualizarDisponibilidad(id, disponible)
+    }
+
+    /**
+     * Desactiva un artículo del catálogo (baja lógica).
+     * Cumple la regla de integridad de negocio: no borra físicamente el registro
+     * para preservar compras, pedidos e inscripciones en las pantallas 10 y 12.
+     */
+    suspend fun desactivarArticuloCatalogo(id: Long) {
+        articuloCatalogoDao.actualizarEstadoActivo(id, activo = false)
+    }
+
+    /**
+     * Reactiva un artículo previamente desactivado.
+     */
+    suspend fun reactivarArticuloCatalogo(id: Long) {
+        articuloCatalogoDao.actualizarEstadoActivo(id, activo = true)
+    }
+
+    suspend fun cambiarEstadoActivoArticulo(id: Long, activo: Boolean) {
+        articuloCatalogoDao.actualizarEstadoActivo(id, activo)
+    }
+
+    /**
+     * Eliminación segura: redirige la acción de borrado hacia una desactivación lógica
+     * para proteger la integridad referencial de transacciones históricas.
+     */
+    suspend fun eliminarArticuloCatalogo(articulo: ArticuloCatalogo) {
+        desactivarArticuloCatalogo(articulo.id)
     }
 }
