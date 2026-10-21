@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Paid
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -135,7 +136,8 @@ import com.example.museodelosmuseos.ui.theme.VerdeExito
 fun PantallaCatalogo(
     viewModel: CatalogoViewModel,
     onVolver: () -> Unit,
-    onNavegarADetalleArticulo: ((Long) -> Unit)? = null
+    onNavegarADetalleArticulo: ((Long) -> Unit)? = null,
+    onNavegarACarrito: () -> Unit = {}
 ) {
     // 1. Suscripción consciente del ciclo de vida al StateFlow del ViewModel
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
@@ -167,6 +169,13 @@ fun PantallaCatalogo(
                             contentDescription = "Volver",
                             tint = DoradoPatrimonial
                         )
+                    }
+                },
+                actions = {
+                    if (estado.sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true) {
+                        IconButton(onClick = onNavegarACarrito) {
+                            Icon(Icons.Filled.ShoppingCart, "Abrir carrito", tint = DoradoPatrimonial)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

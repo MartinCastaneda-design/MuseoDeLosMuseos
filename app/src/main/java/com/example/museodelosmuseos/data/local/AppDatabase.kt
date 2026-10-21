@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.museodelosmuseos.data.local.entity.PedidoLocal
+import com.example.museodelosmuseos.data.local.entity.PedidoLinea
 import com.example.museodelosmuseos.data.local.dao.CompraDao
 import com.example.museodelosmuseos.data.local.entity.CarritoItem
 import com.example.museodelosmuseos.data.local.entity.SolicitudInformacion
@@ -44,9 +46,11 @@ import kotlinx.coroutines.launch
         ArticuloCatalogo::class,
         ControlInicializacion::class,
         CarritoItem::class,
-        SolicitudInformacion::class
+        SolicitudInformacion::class,
+        PedidoLocal::class,
+        PedidoLinea::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -63,6 +67,23 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val NOMBRE_BD = "museo_de_los_museos.db"
         const val CLAVE_CATALOGO_PRECARGADO = "CATALOGO_PRECARGADO_V1"
+
+        val MIGRACION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `pedidos_locales` (
+                    `id` TEXT NOT NULL, `usuarioId` INTEGER NOT NULL, `fechaTimestamp` INTEGER NOT NULL,
+                    `destino` TEXT NOT NULL, `modalidad` TEXT NOT NULL, `ubicacion` TEXT NOT NULL,
+                    `direccion` TEXT NOT NULL, `subtotal` INTEGER NOT NULL, `envio` INTEGER NOT NULL,
+                    `total` INTEGER NOT NULL, `estado` TEXT NOT NULL, PRIMARY KEY(`id`),
+                    FOREIGN KEY(`usuarioId`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT)""")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pedidos_locales_usuarioId` ON `pedidos_locales` (`usuarioId`)")
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `pedido_lineas` (
+                    `pedidoId` TEXT NOT NULL, `articuloId` INTEGER NOT NULL, `titulo` TEXT NOT NULL,
+                    `imagenUrl` TEXT NOT NULL, `precioUnitario` REAL NOT NULL, `cantidad` INTEGER NOT NULL,
+                    `subtotal` INTEGER NOT NULL, PRIMARY KEY(`pedidoId`, `articuloId`),
+                    FOREIGN KEY(`pedidoId`) REFERENCES `pedidos_locales`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)""")
+            }
+        }
 
         /** Conserva usuarios, favoritos, historial y catálogo al incorporar compras locales. */
         val MIGRACION_3_4 = object : Migration(3, 4) {
@@ -136,7 +157,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     NOMBRE_BD
                 )
-                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4)
+                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {

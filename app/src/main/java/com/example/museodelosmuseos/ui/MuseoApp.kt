@@ -14,6 +14,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.museodelosmuseos.ui.screens.detallearticulo.DetalleArticuloViewModel
 import com.example.museodelosmuseos.ui.screens.detallearticulo.PantallaDetalleArticulo
+import com.example.museodelosmuseos.ui.screens.carrito.CarritoViewModel
+import com.example.museodelosmuseos.ui.screens.carrito.PantallaCarrito
 import com.example.museodelosmuseos.ui.screens.catalogo.CatalogoViewModel
 import com.example.museodelosmuseos.ui.screens.catalogo.PantallaCatalogo
 import com.example.museodelosmuseos.data.local.AppDatabase
@@ -69,13 +71,14 @@ fun MuseoApp() {
         if (destinoActual == DestinoPantalla.Catalogo && !dashboardState.puedeAccederCatalogo) {
             destinoActual = DestinoPantalla.Dashboard
         }
-        if (destinoActual is DestinoPantalla.DetalleArticulo && !esCliente) {
+        if ((destinoActual is DestinoPantalla.DetalleArticulo || destinoActual is DestinoPantalla.Carrito) && !esCliente) {
             destinoActual = if (dashboardState.puedeAccederCatalogo) DestinoPantalla.Catalogo else DestinoPantalla.Dashboard
         }
     }
 
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
-        when (destinoActual) {
+        when (val actual = destinoActual) {
+            is DestinoPantalla.Carrito -> destinoActual = actual.origenArticuloId?.let { DestinoPantalla.DetalleArticulo(it) } ?: DestinoPantalla.Catalogo
             is DestinoPantalla.DetalleArticulo -> destinoActual = DestinoPantalla.Catalogo
             is DestinoPantalla.ResultadoQr -> destinoActual = DestinoPantalla.EscanerQr
             is DestinoPantalla.Mapa,
@@ -157,6 +160,9 @@ fun MuseoApp() {
                 PantallaCatalogo(
                     viewModel = catalogoViewModel,
                     onVolver = { destinoActual = DestinoPantalla.Dashboard },
+                    onNavegarACarrito = {
+                        if (esCliente) destinoActual = DestinoPantalla.Carrito()
+                    },
                     onNavegarADetalleArticulo = { articuloId ->
                         if (dashboardViewModel.uiState.value.sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true) {
                             destinoActual = DestinoPantalla.DetalleArticulo(articuloId)
@@ -177,8 +183,20 @@ fun MuseoApp() {
                 )
                 PantallaDetalleArticulo(
                     viewModel = detalleArticuloViewModel,
-                    onVolver = { destinoActual = DestinoPantalla.Catalogo }
+                    onVolver = { destinoActual = DestinoPantalla.Catalogo },
+                    onNavegarACarrito = { destinoActual = DestinoPantalla.Carrito(destino.articuloId) }
                 )
+            }
+        }
+
+        is DestinoPantalla.Carrito -> {
+            val usuarioId = dashboardState.sesion?.usuarioId
+            if (esCliente && usuarioId != null) {
+                val carritoViewModel: CarritoViewModel = viewModel(key = "carrito-$usuarioId",
+                    factory = viewModelFactory { initializer { CarritoViewModel(repository, usuarioId) } })
+                PantallaCarrito(carritoViewModel, onVolver = {
+                    destinoActual = destino.origenArticuloId?.let { DestinoPantalla.DetalleArticulo(it) } ?: DestinoPantalla.Catalogo
+                })
             }
         }
 

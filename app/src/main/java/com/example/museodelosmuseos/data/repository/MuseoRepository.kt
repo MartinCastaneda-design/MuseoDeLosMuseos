@@ -9,6 +9,9 @@ import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.data.local.entity.Usuario
 import com.example.museodelosmuseos.data.remote.MuseoApiService
 import kotlinx.coroutines.flow.Flow
+import com.example.museodelosmuseos.data.model.*
+import com.example.museodelosmuseos.data.local.entity.PedidoLocal
+import com.example.museodelosmuseos.data.local.entity.PedidoLinea
 import androidx.room.withTransaction
 import com.example.museodelosmuseos.data.local.entity.CarritoItem
 import com.example.museodelosmuseos.data.local.entity.SolicitudInformacion
@@ -32,6 +35,41 @@ class MuseoRepository(
     private val sesionDao = database.sesionDao()
     private val articuloCatalogoDao = database.articuloCatalogoDao()
     private val compraDao = database.compraDao()
+
+    fun observarLineasCarrito(usuarioId: Long) = compraDao.observarLineas(usuarioId)
+    fun observarPedidos(usuarioId: Long) = compraDao.observarPedidos(usuarioId)
+    suspend fun obtenerLineasPedido(usuarioId: Long, pedidoId: String) = compraDao.obtenerLineasPedido(usuarioId, pedidoId)
+
+    suspend fun cambiarCantidadCarrito(usuarioId: Long, articuloId: Long, cantidad: Int) = database.withTransaction {
+        ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
+        val anterior = compraDao.obtenerItem(usuarioId, articuloId) ?: error("El producto ya no está en el carrito.")
+        val articulo = articuloCatalogoDao.obtenerPorId(articuloId) ?: error("El producto ya no existe.")
+        // Una reducción permite corregir un carrito cuyo stock disminuyó; confirmar siempre revalida todo.
+        require(cantidad > 0 && (cantidad < anterior.cantidad || cantidad <= articulo.stock)) { "La cantidad supera el stock disponible." }
+        if (cantidad > anterior.cantidad) ReglasSolicitudArticulo.validarDisponibilidad(articulo)?.let { error(it) }
+        compraDao.guardarItem(anterior.copy(cantidad = cantidad))
+    }
+
+    suspend fun eliminarDelCarrito(usuarioId: Long, articuloId: Long) = database.withTransaction {
+        ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
+        compraDao.eliminarItem(usuarioId, articuloId)
+    }
+
+    suspend fun confirmarCarrito(usuarioId: Long, destino: DestinoEnvio, modalidad: ModalidadEnvio,
+        ubicacion: String, direccion: String, revisada: CotizacionCarrito): String = database.withTransaction {
+        ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
+        CalculoCarrito.validarUbicacion(ubicacion)?.let { error(it) }
+        CalculoCarrito.validarDireccion(direccion)?.let { error(it) }
+        val actual = CalculoCarrito.cotizar(compraDao.obtenerLineas(usuarioId), destino, modalidad)
+        check(actual == revisada) { "El carrito, stock o precios cambiaron. Revisa el resumen y confirma nuevamente." }
+        val id = java.util.UUID.randomUUID().toString()
+        compraDao.insertarPedido(PedidoLocal(id, usuarioId, System.currentTimeMillis(), destino.name,
+            modalidad.name, ubicacion.trim(), direccion.trim(), actual.subtotal, actual.envio, actual.total))
+        compraDao.insertarLineas(actual.lineas.map { PedidoLinea(id, it.articulo.id, it.articulo.titulo,
+            it.articulo.imagenUrl, it.articulo.precio, it.cantidad, it.subtotal) })
+        compraDao.vaciarCarrito(usuarioId)
+        id
+    }
 
     fun observarCarrito(usuarioId: Long): Flow<List<CarritoItem>> = compraDao.observarCarrito(usuarioId)
 

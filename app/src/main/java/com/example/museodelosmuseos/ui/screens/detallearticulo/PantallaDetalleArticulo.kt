@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +32,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaDetalleArticulo(viewModel: DetalleArticuloViewModel, onVolver: () -> Unit) {
+fun PantallaDetalleArticulo(viewModel: DetalleArticuloViewModel, onVolver: () -> Unit, onNavegarACarrito: () -> Unit = {}) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val moneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
     Scaffold(
@@ -44,6 +45,9 @@ fun PantallaDetalleArticulo(viewModel: DetalleArticuloViewModel, onVolver: () ->
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver al catálogo", tint = DoradoPatrimonial)
                     }
                 },
+                actions = { IconButton(onClick = onNavegarACarrito) {
+                    Icon(Icons.Filled.ShoppingCart, "Abrir carrito", tint = DoradoPatrimonial)
+                } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AzulMuseoProfundo)
             )
         }
