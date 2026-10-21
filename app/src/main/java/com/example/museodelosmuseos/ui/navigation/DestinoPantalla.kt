@@ -19,4 +19,6 @@ sealed interface DestinoPantalla {
         val esValido: Boolean = true,
         val museoId: Long? = null
     ) : DestinoPantalla
+    data object Catalogo : DestinoPantalla
+    data class DetalleArticulo(val articuloId: Long) : DestinoPantalla
 }

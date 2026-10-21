@@ -2,11 +2,20 @@ package com.example.museodelosmuseos.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.museodelosmuseos.ui.screens.detallearticulo.DetalleArticuloViewModel
+import com.example.museodelosmuseos.ui.screens.detallearticulo.PantallaDetalleArticulo
+import com.example.museodelosmuseos.ui.screens.catalogo.CatalogoViewModel
+import com.example.museodelosmuseos.ui.screens.catalogo.PantallaCatalogo
 import com.example.museodelosmuseos.data.local.AppDatabase
 import com.example.museodelosmuseos.data.repository.MuseoRepository
 import com.example.museodelosmuseos.ui.navigation.DestinoPantalla
@@ -44,6 +53,8 @@ fun MuseoApp() {
     val registroViewModel = remember(repository) { RegistroViewModel(repository) }
     val loginViewModel = remember(repository) { LoginViewModel(repository) }
     val dashboardViewModel = remember(repository) { DashboardViewModel(repository) }
+    val dashboardState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
+    val catalogoViewModel = remember(repository) { CatalogoViewModel(repository) }
     val mapaViewModel = remember(repository) { MapaViewModel(repository) }
     val escanerViewModel = remember(repository) { EscanerQrViewModel(repository) }
 
@@ -53,11 +64,23 @@ fun MuseoApp() {
     // Pila simple de retorno hacia atrás
     val volverABienvenida = { destinoActual = DestinoPantalla.Bienvenida }
 
+    val esCliente = dashboardState.sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true
+    LaunchedEffect(destinoActual, dashboardState.puedeAccederCatalogo, esCliente) {
+        if (destinoActual == DestinoPantalla.Catalogo && !dashboardState.puedeAccederCatalogo) {
+            destinoActual = DestinoPantalla.Dashboard
+        }
+        if (destinoActual is DestinoPantalla.DetalleArticulo && !esCliente) {
+            destinoActual = if (dashboardState.puedeAccederCatalogo) DestinoPantalla.Catalogo else DestinoPantalla.Dashboard
+        }
+    }
+
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
         when (destinoActual) {
+            is DestinoPantalla.DetalleArticulo -> destinoActual = DestinoPantalla.Catalogo
             is DestinoPantalla.ResultadoQr -> destinoActual = DestinoPantalla.EscanerQr
             is DestinoPantalla.Mapa,
             is DestinoPantalla.DetalleMuseo,
+            is DestinoPantalla.Catalogo,
             is DestinoPantalla.EscanerQr -> destinoActual = DestinoPantalla.Dashboard
             else -> volverABienvenida()
         }
@@ -120,8 +143,43 @@ fun MuseoApp() {
                 onNavegarAEscanerQr = {
                     destinoActual = DestinoPantalla.EscanerQr
                 },
-                onCerrarSesion = volverABienvenida
+                onCerrarSesion = volverABienvenida,
+                onNavegarACatalogo = {
+                    if (dashboardViewModel.uiState.value.puedeAccederCatalogo) {
+                        destinoActual = DestinoPantalla.Catalogo
+                    }
+                }
             )
+        }
+
+        is DestinoPantalla.Catalogo -> {
+            if (dashboardState.puedeAccederCatalogo) {
+                PantallaCatalogo(
+                    viewModel = catalogoViewModel,
+                    onVolver = { destinoActual = DestinoPantalla.Dashboard },
+                    onNavegarADetalleArticulo = { articuloId ->
+                        if (dashboardViewModel.uiState.value.sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true) {
+                            destinoActual = DestinoPantalla.DetalleArticulo(articuloId)
+                        }
+                    }
+                )
+            }
+        }
+
+        is DestinoPantalla.DetalleArticulo -> {
+            val usuarioId = dashboardState.sesion?.usuarioId
+            if (esCliente && usuarioId != null) {
+                val detalleArticuloViewModel: DetalleArticuloViewModel = viewModel(
+                    key = "detalle-articulo-${destino.articuloId}-$usuarioId",
+                    factory = viewModelFactory {
+                        initializer { DetalleArticuloViewModel(repository, destino.articuloId, usuarioId) }
+                    }
+                )
+                PantallaDetalleArticulo(
+                    viewModel = detalleArticuloViewModel,
+                    onVolver = { destinoActual = DestinoPantalla.Catalogo }
+                )
+            }
         }
 
         is DestinoPantalla.Mapa -> {

@@ -9,6 +9,11 @@ import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.data.local.entity.Usuario
 import com.example.museodelosmuseos.data.remote.MuseoApiService
 import kotlinx.coroutines.flow.Flow
+import androidx.room.withTransaction
+import com.example.museodelosmuseos.data.local.entity.CarritoItem
+import com.example.museodelosmuseos.data.local.entity.SolicitudInformacion
+import com.example.museodelosmuseos.data.model.CategoriaArticulo
+import com.example.museodelosmuseos.data.model.ReglasSolicitudArticulo
 
 /**
  * Repositorio central que desacopla los ViewModels de la base de datos Room.
@@ -26,6 +31,37 @@ class MuseoRepository(
     private val historialQrDao = database.historialQrDao()
     private val sesionDao = database.sesionDao()
     private val articuloCatalogoDao = database.articuloCatalogoDao()
+    private val compraDao = database.compraDao()
+
+    fun observarCarrito(usuarioId: Long): Flow<List<CarritoItem>> = compraDao.observarCarrito(usuarioId)
+
+    fun observarSolicitudesInformacion(usuarioId: Long): Flow<List<SolicitudInformacion>> =
+        compraDao.observarSolicitudes(usuarioId)
+
+    /** Revalida sesión, disponibilidad y cantidad acumulada de forma atómica. */
+    suspend fun agregarAlCarrito(usuarioId: Long, articuloId: Long, cantidad: Int) = database.withTransaction {
+        ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
+        val articulo = articuloCatalogoDao.obtenerPorId(articuloId)
+        ReglasSolicitudArticulo.validarDisponibilidad(articulo)?.let { error(it) }
+        require(!articulo!!.categoria.equals(CategoriaArticulo.CURSO.name, ignoreCase = true)) {
+            "Para los cursos utiliza Solicitar información."
+        }
+        val anterior = compraDao.obtenerItem(usuarioId, articuloId)?.cantidad ?: 0
+        ReglasSolicitudArticulo.validarCantidad(cantidad.toString(), articulo.stock, anterior)?.let { error(it) }
+        compraDao.guardarItem(CarritoItem(usuarioId, articuloId, anterior + cantidad))
+    }
+
+    suspend fun solicitarInformacion(usuarioId: Long, articuloId: Long, mensaje: String) = database.withTransaction {
+        ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
+        val articulo = articuloCatalogoDao.obtenerPorId(articuloId)
+        ReglasSolicitudArticulo.validarDisponibilidad(articulo)?.let { error(it) }
+        require(articulo!!.categoria.equals(CategoriaArticulo.CURSO.name, ignoreCase = true)) {
+            "La solicitud de información corresponde a cursos."
+        }
+        ReglasSolicitudArticulo.validarConsulta(mensaje)?.let { error(it) }
+        check(compraDao.obtenerSolicitud(usuarioId, articuloId) == null) { "Ya tienes una solicitud para este curso." }
+        compraDao.guardarSolicitud(SolicitudInformacion(usuarioId, articuloId, mensaje.trim(), System.currentTimeMillis()))
+    }
 
     // --- SESIÓN Y USUARIOS ---
     fun observarSesion(): Flow<SesionActiva?> = sesionDao.observarSesion()

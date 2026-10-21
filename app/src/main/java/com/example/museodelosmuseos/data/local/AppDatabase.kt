@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.museodelosmuseos.data.local.dao.CompraDao
+import com.example.museodelosmuseos.data.local.entity.CarritoItem
+import com.example.museodelosmuseos.data.local.entity.SolicitudInformacion
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.museodelosmuseos.data.local.dao.ArticuloCatalogoDao
@@ -39,12 +42,15 @@ import kotlinx.coroutines.launch
         HistorialQr::class,
         SesionActiva::class,
         ArticuloCatalogo::class,
-        ControlInicializacion::class
+        ControlInicializacion::class,
+        CarritoItem::class,
+        SolicitudInformacion::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun compraDao(): CompraDao
 
     abstract fun usuarioDao(): UsuarioDao
     abstract fun museoDao(): MuseoDao
@@ -57,6 +63,31 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val NOMBRE_BD = "museo_de_los_museos.db"
         const val CLAVE_CATALOGO_PRECARGADO = "CATALOGO_PRECARGADO_V1"
+
+        /** Conserva usuarios, favoritos, historial y catálogo al incorporar compras locales. */
+        val MIGRACION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `carrito_items` (
+                        `usuarioId` INTEGER NOT NULL, `articuloId` INTEGER NOT NULL,
+                        `cantidad` INTEGER NOT NULL, PRIMARY KEY(`usuarioId`, `articuloId`),
+                        FOREIGN KEY(`usuarioId`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+                        FOREIGN KEY(`articuloId`) REFERENCES `articulos_catalogo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_carrito_items_articuloId` ON `carrito_items` (`articuloId`)")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `solicitudes_informacion` (
+                        `usuarioId` INTEGER NOT NULL, `articuloId` INTEGER NOT NULL,
+                        `mensaje` TEXT NOT NULL, `fechaTimestamp` INTEGER NOT NULL, `estado` TEXT NOT NULL,
+                        PRIMARY KEY(`usuarioId`, `articuloId`),
+                        FOREIGN KEY(`usuarioId`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+                        FOREIGN KEY(`articuloId`) REFERENCES `articulos_catalogo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_solicitudes_informacion_articuloId` ON `solicitudes_informacion` (`articuloId`)")
+            }
+        }
 
         /**
          * Migración no destructiva de la versión 2 a la 3:
@@ -105,7 +136,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     NOMBRE_BD
                 )
-                    .addMigrations(MIGRACION_2_3)
+                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {

@@ -109,7 +109,8 @@ fun PantallaDashboard(
     onNavegarAMapa: () -> Unit,
     onNavegarADetalle: (Long) -> Unit,
     onNavegarAEscanerQr: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    onNavegarACatalogo: () -> Unit
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -172,9 +173,12 @@ fun PantallaDashboard(
         bottomBar = {
             BarraNavegacionInferior(
                 tabSeleccionada = estado.tabSeleccionada,
+                puedeAccederCatalogo = estado.puedeAccederCatalogo,
                 onTabSeleccionada = { tab ->
                     if (tab == TabDashboard.MAPA) {
                         onNavegarAMapa()
+                    } else if (tab == TabDashboard.CATALOGO) {
+                        if (estado.puedeAccederCatalogo) onNavegarACatalogo()
                     } else {
                         viewModel.seleccionarTab(tab)
                     }
@@ -204,7 +208,9 @@ fun PantallaDashboard(
                             onNavegarAMapa = onNavegarAMapa,
                             onNavegarADetalle = onNavegarADetalle,
                             onNavegarAEscanerQr = onNavegarAEscanerQr,
-                            onVerCatalogo = { viewModel.seleccionarTab(TabDashboard.CATALOGO) }
+                            onVerCatalogo = {
+                                if (estado.puedeAccederCatalogo) onNavegarACatalogo()
+                            }
                         )
                     }
                     TabDashboard.MAPA -> {
@@ -217,9 +223,13 @@ fun PantallaDashboard(
                         )
                     }
                     TabDashboard.CATALOGO -> {
-                        ContenidoCatalogo(
-                            museos = estado.todosLosMuseos,
-                            onNavegarADetalle = onNavegarADetalle
+                        ContenidoPlaceholder(
+                            titulo = "Productos y cursos",
+                            descripcion = "Consulta el catálogo cultural.",
+                            botonTexto = "Abrir catálogo",
+                            onAccion = {
+                                if (estado.puedeAccederCatalogo) onNavegarACatalogo()
+                            }
                         )
                     }
                     TabDashboard.NOTIFICACIONES -> {
@@ -244,6 +254,7 @@ fun PantallaDashboard(
 @Composable
 private fun BarraNavegacionInferior(
     tabSeleccionada: TabDashboard,
+    puedeAccederCatalogo: Boolean,
     onTabSeleccionada: (TabDashboard) -> Unit
 ) {
     NavigationBar(
@@ -258,7 +269,8 @@ private fun BarraNavegacionInferior(
             Triple(TabDashboard.PERFIL, "Perfil", Icons.Filled.Person)
         )
 
-        items.forEach { (tab, etiqueta, icono) ->
+        items.filter { it.first != TabDashboard.CATALOGO || puedeAccederCatalogo }
+            .forEach { (tab, etiqueta, icono) ->
             NavigationBarItem(
                 selected = tabSeleccionada == tab,
                 onClick = { onTabSeleccionada(tab) },
