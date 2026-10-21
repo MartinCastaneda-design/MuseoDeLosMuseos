@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.museodelosmuseos.data.local.entity.AvisoLocal
+import com.example.museodelosmuseos.data.local.entity.AvisoLectura
+import com.example.museodelosmuseos.data.local.dao.AvisoDao
 import com.example.museodelosmuseos.data.local.entity.PedidoLocal
 import com.example.museodelosmuseos.data.local.entity.PedidoLinea
 import com.example.museodelosmuseos.data.local.dao.CompraDao
@@ -48,12 +51,15 @@ import kotlinx.coroutines.launch
         CarritoItem::class,
         SolicitudInformacion::class,
         PedidoLocal::class,
-        PedidoLinea::class
+        PedidoLinea::class,
+        AvisoLocal::class,
+        AvisoLectura::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun avisoDao(): AvisoDao
     abstract fun compraDao(): CompraDao
 
     abstract fun usuarioDao(): UsuarioDao
@@ -67,6 +73,25 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val NOMBRE_BD = "museo_de_los_museos.db"
         const val CLAVE_CATALOGO_PRECARGADO = "CATALOGO_PRECARGADO_V1"
+
+        /** Solo agrega avisos y lecturas. Conserva todas las tablas y registros anteriores. */
+        val MIGRACION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `avisos_locales` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `titulo` TEXT NOT NULL,
+                    `mensaje` TEXT NOT NULL, `fechaTimestamp` INTEGER NOT NULL, `rolDestino` TEXT NOT NULL,
+                    `usuarioDestinoId` INTEGER, `destino` TEXT NOT NULL, `museoId` INTEGER, `solicitudClave` TEXT,
+                    FOREIGN KEY(`usuarioDestinoId`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)""")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_avisos_locales_usuarioDestinoId` ON `avisos_locales` (`usuarioDestinoId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_avisos_locales_rolDestino` ON `avisos_locales` (`rolDestino`)")
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `avisos_lecturas` (
+                    `avisoId` INTEGER NOT NULL, `usuarioId` INTEGER NOT NULL, `fechaLectura` INTEGER NOT NULL,
+                    PRIMARY KEY(`avisoId`, `usuarioId`),
+                    FOREIGN KEY(`avisoId`) REFERENCES `avisos_locales`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+                    FOREIGN KEY(`usuarioId`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)""")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_avisos_lecturas_usuarioId` ON `avisos_lecturas` (`usuarioId`)")
+            }
+        }
 
         val MIGRACION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -157,7 +182,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     NOMBRE_BD
                 )
-                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5)
+                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5, MIGRACION_5_6)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {

@@ -8,19 +8,25 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class SolicitudesViewModel(private val repository: MuseoRepository, private val actorId: Long) : ViewModel() {
+class SolicitudesViewModel(private val repository: MuseoRepository, private val actorId: Long,
+    private val solicitudInicial: String? = null) : ViewModel() {
     private val _uiState = MutableStateFlow(SolicitudesUiState())
+    private var solicitudInicialAplicada = false
     val uiState = _uiState.asStateFlow()
     init {
         viewModelScope.launch {
             try {
                 repository.observarSesion().collectLatest { sesion ->
+                    solicitudInicialAplicada = false
                     val autorizado = sesion?.usuarioId == actorId && PermisosSolicitudes.puedeConsultar(sesion, actorId)
                     _uiState.value = SolicitudesUiState(cargando = autorizado,
                         esAdministrador = autorizado && sesion?.rol?.equals("ADMINISTRADOR", true) == true,
                         error = if (autorizado) null else "No tienes acceso a este historial.")
                     if (autorizado) repository.observarHistorialSolicitudes(actorId).collect { lista ->
-                        _uiState.update { it.copy(solicitudes = lista, cargando = false) }
+                        val abrir = if (!solicitudInicialAplicada) solicitudInicial?.takeIf { clave -> lista.any { s -> s.clave == clave } } else null
+                        solicitudInicialAplicada = true
+                        _uiState.update { it.copy(solicitudes = lista, cargando = false,
+                            expandida = it.expandida ?: abrir) }
                     }
                 }
             } catch (e: CancellationException) { throw e }

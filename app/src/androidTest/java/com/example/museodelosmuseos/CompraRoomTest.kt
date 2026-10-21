@@ -70,7 +70,7 @@ class CompraRoomTest {
                 sqlite.version = 4
             } finally { sqlite.close() }
             Room.databaseBuilder(context, AppDatabase::class.java, nombre)
-                .addMigrations(AppDatabase.MIGRACION_4_5).build().let { db ->
+                .addMigrations(AppDatabase.MIGRACION_4_5, AppDatabase.MIGRACION_5_6).build().let { db ->
                     try {
                         assertEquals(2, db.compraDao().obtenerItem(1, 1)!!.cantidad)
                         assertEquals("Cliente 1", db.usuarioDao().obtenerPorId(1)!!.nombre)
@@ -149,7 +149,7 @@ class CompraRoomTest {
                 sqlite.version = 3
             } finally { sqlite.close() }
             Room.databaseBuilder(context, AppDatabase::class.java, nombre)
-                .addMigrations(AppDatabase.MIGRACION_3_4, AppDatabase.MIGRACION_4_5).build().let { db ->
+                .addMigrations(AppDatabase.MIGRACION_3_4, AppDatabase.MIGRACION_4_5, AppDatabase.MIGRACION_5_6).build().let { db ->
                     try {
                         assertEquals("Cliente 1", db.usuarioDao().obtenerPorId(1)!!.nombre)
                         assertEquals("Libro", db.articuloCatalogoDao().obtenerPorId(1)!!.titulo)

@@ -114,7 +114,8 @@ fun PantallaDashboard(
     onCerrarSesion: () -> Unit,
     onNavegarACatalogo: () -> Unit,
     onNavegarASolicitudes: () -> Unit = {},
-    onNavegarAFavoritos: () -> Unit = {}
+    onNavegarAFavoritos: () -> Unit = {},
+    onNavegarAAvisos: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -184,9 +185,12 @@ fun PantallaDashboard(
             BarraNavegacionInferior(
                 tabSeleccionada = estado.tabSeleccionada,
                 puedeAccederCatalogo = estado.puedeAccederCatalogo,
+                avisosNoLeidos = estado.avisosNoLeidos,
                 onTabSeleccionada = { tab ->
                     if (tab == TabDashboard.MAPA) {
                         onNavegarAMapa()
+                    } else if (tab == TabDashboard.NOTIFICACIONES) {
+                        onNavegarAAvisos()
                     } else if (tab == TabDashboard.CATALOGO) {
                         if (estado.puedeAccederCatalogo) onNavegarACatalogo()
                     } else {
@@ -243,7 +247,7 @@ fun PantallaDashboard(
                         )
                     }
                     TabDashboard.NOTIFICACIONES -> {
-                        ContenidoNotificaciones(sesion = estado.sesion)
+                        ContenidoPlaceholder("Avisos locales", "Consulta los mensajes de tu perfil.", "Abrir avisos", onNavegarAAvisos)
                     }
                     TabDashboard.PERFIL -> {
                         ContenidoPerfil(
@@ -265,6 +269,7 @@ fun PantallaDashboard(
 private fun BarraNavegacionInferior(
     tabSeleccionada: TabDashboard,
     puedeAccederCatalogo: Boolean,
+    avisosNoLeidos: Int,
     onTabSeleccionada: (TabDashboard) -> Unit
 ) {
     NavigationBar(
@@ -285,8 +290,8 @@ private fun BarraNavegacionInferior(
                 selected = tabSeleccionada == tab,
                 onClick = { onTabSeleccionada(tab) },
                 icon = {
-                    if (tab == TabDashboard.NOTIFICACIONES) {
-                        BadgedBox(badge = { Badge { Text("2") } }) {
+                    if (tab == TabDashboard.NOTIFICACIONES && avisosNoLeidos > 0) {
+                        BadgedBox(badge = { Badge { Text(avisosNoLeidos.toString()) } }) {
                             Icon(icono, contentDescription = etiqueta)
                         }
                     } else {

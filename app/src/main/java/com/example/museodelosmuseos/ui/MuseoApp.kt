@@ -20,6 +20,10 @@ import com.example.museodelosmuseos.ui.screens.solicitudes.SolicitudesViewModel
 import com.example.museodelosmuseos.ui.screens.solicitudes.PantallaSolicitudes
 import com.example.museodelosmuseos.ui.screens.favoritos.FavoritosViewModel
 import com.example.museodelosmuseos.ui.screens.favoritos.PantallaFavoritos
+import com.example.museodelosmuseos.ui.screens.avisos.AvisosViewModel
+import com.example.museodelosmuseos.ui.screens.avisos.PantallaAvisos
+import com.example.museodelosmuseos.data.model.DestinoAviso
+import com.example.museodelosmuseos.data.model.ReglasAvisos
 import com.example.museodelosmuseos.ui.screens.catalogo.CatalogoViewModel
 import com.example.museodelosmuseos.ui.screens.catalogo.PantallaCatalogo
 import com.example.museodelosmuseos.data.local.AppDatabase
@@ -66,6 +70,16 @@ fun MuseoApp() {
 
     // Estado reactivo de navegación (Single Source of Truth para la vista activa)
     var destinoActual by remember { mutableStateOf<DestinoPantalla>(DestinoPantalla.Bienvenida) }
+    var origenDesdeAvisos by remember { mutableStateOf<DestinoPantalla?>(null) }
+    fun volverDesdeAvisos(): Boolean {
+        if (destinoActual != origenDesdeAvisos || origenDesdeAvisos == null) return false
+        origenDesdeAvisos = null
+        destinoActual = DestinoPantalla.Avisos
+        return true
+    }
+    LaunchedEffect(destinoActual) {
+        if (origenDesdeAvisos != null && destinoActual != origenDesdeAvisos) origenDesdeAvisos = null
+    }
 
     // Pila simple de retorno hacia atrás
     val volverABienvenida = { destinoActual = DestinoPantalla.Bienvenida }
@@ -84,8 +98,17 @@ fun MuseoApp() {
         }
     }
 
+    LaunchedEffect(destinoActual, dashboardState.sesion) {
+        if (destinoActual == DestinoPantalla.Avisos) {
+            val sesion = dashboardState.sesion
+            if (sesion == null || ReglasAvisos.acceso(sesion, sesion.usuarioId) != null) destinoActual = DestinoPantalla.Dashboard
+        }
+    }
+
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
+        if (!volverDesdeAvisos()) {
         when (val actual = destinoActual) {
+            is DestinoPantalla.Avisos -> destinoActual = DestinoPantalla.Dashboard
             is DestinoPantalla.Favoritos -> destinoActual = actual.origenMuseoId?.let { DestinoPantalla.DetalleMuseo(it) } ?: DestinoPantalla.Dashboard
             is DestinoPantalla.DetalleMuseo -> destinoActual = if (esCliente) actual.origenFavoritos ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
             is DestinoPantalla.Solicitudes -> destinoActual = if (esCliente) actual.origenCarrito ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
@@ -96,6 +119,7 @@ fun MuseoApp() {
             is DestinoPantalla.Catalogo,
             is DestinoPantalla.EscanerQr -> destinoActual = DestinoPantalla.Dashboard
             else -> volverABienvenida()
+        }
         }
     }
 
@@ -157,6 +181,7 @@ fun MuseoApp() {
                     destinoActual = DestinoPantalla.EscanerQr
                 },
                 onCerrarSesion = volverABienvenida,
+                onNavegarAAvisos = { destinoActual = DestinoPantalla.Avisos },
                 onNavegarAFavoritos = {
                     if (dashboardViewModel.uiState.value.sesion?.rol?.equals("CLIENTE", true) == true) destinoActual = DestinoPantalla.Favoritos()
                 },
@@ -175,7 +200,7 @@ fun MuseoApp() {
             if (dashboardState.puedeAccederCatalogo) {
                 PantallaCatalogo(
                     viewModel = catalogoViewModel,
-                    onVolver = { destinoActual = DestinoPantalla.Dashboard },
+                    onVolver = { if (!volverDesdeAvisos()) destinoActual = DestinoPantalla.Dashboard },
                     onNavegarACarrito = {
                         if (esCliente) destinoActual = DestinoPantalla.Carrito()
                     },
@@ -219,10 +244,10 @@ fun MuseoApp() {
         is DestinoPantalla.Solicitudes -> {
             val actorId = dashboardState.sesion?.usuarioId
             if (dashboardState.puedeAccederCatalogo && actorId != null) {
-                val solicitudesViewModel: SolicitudesViewModel = viewModel(key = "solicitudes-$actorId",
-                    factory = viewModelFactory { initializer { SolicitudesViewModel(repository, actorId) } })
+                val solicitudesViewModel: SolicitudesViewModel = viewModel(key = "solicitudes-$actorId-${destino.solicitudInicial}",
+                    factory = viewModelFactory { initializer { SolicitudesViewModel(repository, actorId, destino.solicitudInicial) } })
                 PantallaSolicitudes(solicitudesViewModel, onVolver = {
-                    destinoActual = if (esCliente) destino.origenCarrito ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
+                    if (!volverDesdeAvisos()) destinoActual = if (esCliente) destino.origenCarrito ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
                 })
             }
         }
@@ -236,6 +261,26 @@ fun MuseoApp() {
                     onVolver = { destinoActual = destino.origenMuseoId?.let { DestinoPantalla.DetalleMuseo(it) } ?: DestinoPantalla.Dashboard },
                     onAbrirMuseo = { destinoActual = DestinoPantalla.DetalleMuseo(it, destino) },
                     onExplorar = { destinoActual = DestinoPantalla.Mapa })
+            }
+        }
+
+        is DestinoPantalla.Avisos -> {
+            val sesion = dashboardState.sesion
+            if (sesion != null && ReglasAvisos.acceso(sesion, sesion.usuarioId) == null) {
+                val avisosViewModel: AvisosViewModel = viewModel(key = "avisos-${sesion.usuarioId}",
+                    factory = viewModelFactory { initializer { AvisosViewModel(repository, sesion.usuarioId) } })
+                PantallaAvisos(avisosViewModel, onVolver = { destinoActual = DestinoPantalla.Dashboard }, onAbrirContenido = { enlace ->
+                    val actual = dashboardViewModel.uiState.value.sesion
+                    if (actual?.usuarioId == sesion.usuarioId && ReglasAvisos.puedeAbrir(actual.rol, enlace.destino)) {
+                        val destinoEnlace = when (enlace.destino) {
+                            DestinoAviso.MUSEO -> enlace.museoId?.let { DestinoPantalla.DetalleMuseo(it) }
+                            DestinoAviso.CATALOGO -> DestinoPantalla.Catalogo
+                            DestinoAviso.SOLICITUDES -> DestinoPantalla.Solicitudes(solicitudInicial = enlace.solicitudClave)
+                            DestinoAviso.SIN_ENLACE -> null
+                        }
+                        if (destinoEnlace != null) { origenDesdeAvisos = destinoEnlace; destinoActual = destinoEnlace }
+                    }
+                })
             }
         }
 
@@ -261,7 +306,7 @@ fun MuseoApp() {
                     if (esCliente) destinoActual = destino.origenFavoritos ?: DestinoPantalla.Favoritos(destino.museoId)
                 },
                 onVolver = {
-                    destinoActual = if (esCliente) destino.origenFavoritos ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
+                    if (!volverDesdeAvisos()) destinoActual = if (esCliente) destino.origenFavoritos ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
                 }
             )
         }

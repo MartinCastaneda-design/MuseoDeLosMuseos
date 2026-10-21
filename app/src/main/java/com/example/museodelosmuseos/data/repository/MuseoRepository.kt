@@ -16,6 +16,8 @@ import com.example.museodelosmuseos.data.local.entity.PedidoLinea
 import androidx.room.withTransaction
 import com.example.museodelosmuseos.data.local.entity.CarritoItem
 import com.example.museodelosmuseos.data.local.entity.SolicitudInformacion
+import com.example.museodelosmuseos.data.local.entity.AvisoLocal
+import com.example.museodelosmuseos.data.local.entity.AvisoLectura
 import com.example.museodelosmuseos.data.model.CategoriaArticulo
 import com.example.museodelosmuseos.data.model.ReglasSolicitudArticulo
 
@@ -36,6 +38,61 @@ class MuseoRepository(
     private val sesionDao = database.sesionDao()
     private val articuloCatalogoDao = database.articuloCatalogoDao()
     private val compraDao = database.compraDao()
+    private val avisoDao = database.avisoDao()
+
+    fun observarAvisos(actorId: Long) = avisoDao.observar(actorId)
+
+    suspend fun publicarAviso(actorId: Long, formulario: FormularioAviso): Long = database.withTransaction {
+        ReglasAvisos.validarFormulario(sesionDao.obtenerSesion(), actorId, formulario)?.let { error(it) }
+        if (formulario.destino == DestinoAviso.MUSEO)
+            check(museoDao.obtenerPorId(formulario.museoId!!) != null) { "El museo seleccionado ya no existe." }
+        avisoDao.insertar(AvisoLocal(titulo = formulario.titulo.trim(), mensaje = formulario.mensaje.trim(),
+            fechaTimestamp = System.currentTimeMillis(), rolDestino = formulario.audiencia.name,
+            destino = formulario.destino.name, museoId = if (formulario.destino == DestinoAviso.MUSEO) formulario.museoId else null))
+    }
+
+    suspend fun cambiarLecturaAviso(actorId: Long, avisoId: Long, leido: Boolean) = database.withTransaction {
+        ReglasAvisos.acceso(sesionDao.obtenerSesion(), actorId)?.let { error(it) }
+        check(avisoDao.obtenerVisible(actorId, avisoId) != null) { "Este aviso no está disponible para tu perfil." }
+        if (leido) avisoDao.guardarLecturas(listOf(AvisoLectura(avisoId, actorId, System.currentTimeMillis())))
+        else avisoDao.marcarNoLeido(actorId, avisoId)
+    }
+
+    suspend fun marcarAvisosLeidos(actorId: Long) = database.withTransaction {
+        ReglasAvisos.acceso(sesionDao.obtenerSesion(), actorId)?.let { error(it) }
+        avisoDao.guardarLecturas(avisoDao.obtenerVisibles(actorId).filter { !it.leido }
+            .map { AvisoLectura(it.aviso.id, actorId, System.currentTimeMillis()) })
+    }
+
+    suspend fun abrirAviso(actorId: Long, avisoId: Long): EnlaceAviso = database.withTransaction {
+        val sesion = sesionDao.obtenerSesion()
+        ReglasAvisos.acceso(sesion, actorId)?.let { error(it) }
+        val aviso = avisoDao.obtenerVisible(actorId, avisoId)?.aviso ?: error("El aviso ya no está disponible.")
+        val destino = DestinoAviso.entries.firstOrNull { it.name == aviso.destino } ?: error("El enlace del aviso no es válido.")
+        check(ReglasAvisos.puedeAbrir(sesion!!.rol, destino)) { "Tu rol no tiene acceso al destino de este aviso." }
+        if (destino == DestinoAviso.MUSEO) check(aviso.museoId != null && museoDao.obtenerPorId(aviso.museoId) != null) { "El museo ya no está disponible." }
+        if (destino == DestinoAviso.SOLICITUDES && aviso.solicitudClave != null)
+            check(obtenerSolicitudVisible(sesion, aviso.solicitudClave)) { "La solicitud ya no está disponible para tu perfil." }
+        avisoDao.guardarLecturas(listOf(AvisoLectura(avisoId, actorId, System.currentTimeMillis())))
+        EnlaceAviso(destino, aviso.museoId, aviso.solicitudClave)
+    }
+
+    private suspend fun obtenerSolicitudVisible(sesion: SesionActiva, clave: String): Boolean {
+        if (clave.startsWith("pedido-")) {
+            val pedido = compraDao.obtenerPedido(clave.removePrefix("pedido-")) ?: return false
+            return PermisosSolicitudes.puedeConsultar(sesion, pedido.usuarioId)
+        }
+        val partes = clave.split('-')
+        if (partes.size != 3 || partes[0] != "curso") return false
+        val usuarioId = partes[1].toLongOrNull() ?: return false
+        val articuloId = partes[2].toLongOrNull() ?: return false
+        return PermisosSolicitudes.puedeConsultar(sesion, usuarioId) && compraDao.obtenerSolicitud(usuarioId, articuloId) != null
+    }
+
+    private suspend fun avisoSolicitud(usuarioId: Long, clave: String, titulo: String, mensaje: String) {
+        avisoDao.insertar(AvisoLocal(titulo = titulo, mensaje = mensaje, fechaTimestamp = System.currentTimeMillis(),
+            rolDestino = "CLIENTE", usuarioDestinoId = usuarioId, destino = DestinoAviso.SOLICITUDES.name, solicitudClave = clave))
+    }
 
     fun observarHistorialSolicitudes(actorId: Long): Flow<List<SolicitudHistorial>> = combine(
         compraDao.observarHistorialPedidos(actorId), compraDao.observarHistorialConsultas(actorId)
@@ -54,6 +111,8 @@ class MuseoRepository(
         val filas = solicitud.pedido?.let { compraDao.actualizarEstadoPedido(it.id, actual, nuevo.valor) }
             ?: solicitud.consulta!!.let { compraDao.actualizarEstadoConsulta(it.usuarioId, it.articuloId, actual, nuevo.valor) }
         check(filas == 1) { "No fue posible actualizar la solicitud." }
+        avisoSolicitud(solicitud.usuarioId, solicitud.clave, "Estado de solicitud actualizado",
+            "${solicitud.titulo}: ${nuevo.etiqueta}. Cambio de demostración guardado solo en este dispositivo.")
     }
 
     fun observarLineasCarrito(usuarioId: Long) = compraDao.observarLineas(usuarioId)
@@ -88,6 +147,7 @@ class MuseoRepository(
         compraDao.insertarLineas(actual.lineas.map { PedidoLinea(id, it.articulo.id, it.articulo.titulo,
             it.articulo.imagenUrl, it.articulo.precio, it.cantidad, it.subtotal) })
         compraDao.vaciarCarrito(usuarioId)
+        avisoSolicitud(usuarioId, "pedido-$id", "Solicitud local registrada", "Pedido ${id.take(8)} registrado como Pendiente local. Total: $${actual.total} CLP. Sin pago real.")
         id
     }
 
@@ -119,6 +179,7 @@ class MuseoRepository(
         ReglasSolicitudArticulo.validarConsulta(mensaje)?.let { error(it) }
         check(compraDao.obtenerSolicitud(usuarioId, articuloId) == null) { "Ya tienes una solicitud para este curso." }
         compraDao.guardarSolicitud(SolicitudInformacion(usuarioId, articuloId, mensaje.trim(), System.currentTimeMillis()))
+        avisoSolicitud(usuarioId, "curso-$usuarioId-$articuloId", "Consulta de curso registrada", "Tu consulta sobre ${articulo.titulo} se guardó en este dispositivo. Aún no se envía a la organización.")
     }
 
     // --- SESIÓN Y USUARIOS ---
