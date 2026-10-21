@@ -22,6 +22,9 @@ import com.example.museodelosmuseos.ui.screens.favoritos.FavoritosViewModel
 import com.example.museodelosmuseos.ui.screens.favoritos.PantallaFavoritos
 import com.example.museodelosmuseos.ui.screens.avisos.AvisosViewModel
 import com.example.museodelosmuseos.ui.screens.avisos.PantallaAvisos
+import com.example.museodelosmuseos.ui.screens.perfil.PerfilViewModel
+import com.example.museodelosmuseos.ui.screens.perfil.PantallaPerfil
+import com.example.museodelosmuseos.data.local.ArchivosAvatar
 import com.example.museodelosmuseos.data.model.DestinoAviso
 import com.example.museodelosmuseos.data.model.ReglasAvisos
 import com.example.museodelosmuseos.ui.screens.catalogo.CatalogoViewModel
@@ -71,6 +74,7 @@ fun MuseoApp() {
     // Estado reactivo de navegación (Single Source of Truth para la vista activa)
     var destinoActual by remember { mutableStateOf<DestinoPantalla>(DestinoPantalla.Bienvenida) }
     var origenDesdeAvisos by remember { mutableStateOf<DestinoPantalla?>(null) }
+    var entradaPerfil by remember { mutableStateOf(0) }
     fun volverDesdeAvisos(): Boolean {
         if (destinoActual != origenDesdeAvisos || origenDesdeAvisos == null) return false
         origenDesdeAvisos = null
@@ -99,6 +103,11 @@ fun MuseoApp() {
     }
 
     LaunchedEffect(destinoActual, dashboardState.sesion) {
+        if (destinoActual == DestinoPantalla.Perfil && dashboardState.sesion == null) {
+            origenDesdeAvisos = null
+            loginViewModel.limpiarAlCerrarSesion()
+            destinoActual = DestinoPantalla.Login
+        }
         if (destinoActual == DestinoPantalla.Avisos) {
             val sesion = dashboardState.sesion
             if (sesion == null || ReglasAvisos.acceso(sesion, sesion.usuarioId) != null) destinoActual = DestinoPantalla.Dashboard
@@ -108,6 +117,7 @@ fun MuseoApp() {
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
         if (!volverDesdeAvisos()) {
         when (val actual = destinoActual) {
+            is DestinoPantalla.Perfil -> destinoActual = DestinoPantalla.Dashboard
             is DestinoPantalla.Avisos -> destinoActual = DestinoPantalla.Dashboard
             is DestinoPantalla.Favoritos -> destinoActual = actual.origenMuseoId?.let { DestinoPantalla.DetalleMuseo(it) } ?: DestinoPantalla.Dashboard
             is DestinoPantalla.DetalleMuseo -> destinoActual = if (esCliente) actual.origenFavoritos ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
@@ -181,6 +191,7 @@ fun MuseoApp() {
                     destinoActual = DestinoPantalla.EscanerQr
                 },
                 onCerrarSesion = volverABienvenida,
+                onNavegarAPerfil = { entradaPerfil++; destinoActual = DestinoPantalla.Perfil },
                 onNavegarAAvisos = { destinoActual = DestinoPantalla.Avisos },
                 onNavegarAFavoritos = {
                     if (dashboardViewModel.uiState.value.sesion?.rol?.equals("CLIENTE", true) == true) destinoActual = DestinoPantalla.Favoritos()
@@ -261,6 +272,17 @@ fun MuseoApp() {
                     onVolver = { destinoActual = destino.origenMuseoId?.let { DestinoPantalla.DetalleMuseo(it) } ?: DestinoPantalla.Dashboard },
                     onAbrirMuseo = { destinoActual = DestinoPantalla.DetalleMuseo(it, destino) },
                     onExplorar = { destinoActual = DestinoPantalla.Mapa })
+            }
+        }
+
+        is DestinoPantalla.Perfil -> {
+            val sesion = dashboardState.sesion
+            if (sesion != null && com.example.museodelosmuseos.data.model.ReglasPerfil.acceso(sesion, sesion.usuarioId) == null) {
+                val archivos = remember { ArchivosAvatar(context) }
+                val perfilViewModel: PerfilViewModel = viewModel(key = "perfil-${sesion.usuarioId}-$entradaPerfil",
+                    factory = viewModelFactory { initializer { PerfilViewModel(repository, sesion.usuarioId, archivos) } })
+                PantallaPerfil(perfilViewModel, archivos, onVolver = { destinoActual = DestinoPantalla.Dashboard },
+                    onSalir = { loginViewModel.limpiarAlCerrarSesion(); origenDesdeAvisos = null; destinoActual = DestinoPantalla.Login })
             }
         }
 

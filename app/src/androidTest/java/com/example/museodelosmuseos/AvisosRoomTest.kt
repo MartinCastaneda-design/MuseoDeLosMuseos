@@ -91,7 +91,7 @@ class AvisosRoomTest {
             val sqlite = SQLiteDatabase.openDatabase(context.getDatabasePath(nombre).path, null, SQLiteDatabase.OPEN_READWRITE)
             try { sqlite.execSQL("DROP TABLE avisos_lecturas"); sqlite.execSQL("DROP TABLE avisos_locales"); sqlite.version = 5 } finally { sqlite.close() }
             var avisoId = 0L
-            Room.databaseBuilder(context, AppDatabase::class.java, nombre).addMigrations(AppDatabase.MIGRACION_5_6).build().let { db ->
+            Room.databaseBuilder(context, AppDatabase::class.java, nombre).addMigrations(AppDatabase.MIGRACION_5_6, AppDatabase.MIGRACION_6_7).build().let { db ->
                 try {
                     assertEquals(2, db.compraDao().obtenerItem(1, 1)!!.cantidad)
                     assertEquals(6000L, db.compraDao().obtenerPedido("historico")!!.total)

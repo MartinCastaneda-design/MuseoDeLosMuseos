@@ -25,4 +25,5 @@ sealed interface DestinoPantalla {
     data class Carrito(val origenArticuloId: Long? = null) : DestinoPantalla
     data class Solicitudes(val origenCarrito: Carrito? = null, val solicitudInicial: String? = null) : DestinoPantalla
     data object Avisos : DestinoPantalla
+    data object Perfil : DestinoPantalla
 }

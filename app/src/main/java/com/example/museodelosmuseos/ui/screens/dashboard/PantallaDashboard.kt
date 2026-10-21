@@ -115,7 +115,8 @@ fun PantallaDashboard(
     onNavegarACatalogo: () -> Unit,
     onNavegarASolicitudes: () -> Unit = {},
     onNavegarAFavoritos: () -> Unit = {},
-    onNavegarAAvisos: () -> Unit = {}
+    onNavegarAAvisos: () -> Unit = {},
+    onNavegarAPerfil: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -189,6 +190,8 @@ fun PantallaDashboard(
                 onTabSeleccionada = { tab ->
                     if (tab == TabDashboard.MAPA) {
                         onNavegarAMapa()
+                    } else if (tab == TabDashboard.PERFIL) {
+                        onNavegarAPerfil()
                     } else if (tab == TabDashboard.NOTIFICACIONES) {
                         onNavegarAAvisos()
                     } else if (tab == TabDashboard.CATALOGO) {
@@ -250,10 +253,7 @@ fun PantallaDashboard(
                         ContenidoPlaceholder("Avisos locales", "Consulta los mensajes de tu perfil.", "Abrir avisos", onNavegarAAvisos)
                     }
                     TabDashboard.PERFIL -> {
-                        ContenidoPerfil(
-                            sesion = estado.sesion,
-                            onCerrarSesion = { viewModel.cerrarSesion(onCerrarSesion) }
-                        )
+                        ContenidoPlaceholder("Perfil y configuración", "Edita tus datos y preferencias locales.", "Abrir perfil", onNavegarAPerfil)
                     }
                 }
             }

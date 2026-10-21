@@ -183,6 +183,30 @@ class MuseoRepository(
     }
 
     // --- SESIÓN Y USUARIOS ---
+    fun observarPerfilActivo(usuarioId: Long) = usuarioDao.observarPerfilActivo(usuarioId)
+    suspend fun correoPerfilDemo(rol: String): String? = usuarioDao.obtenerPorRol(rol).minByOrNull { it.id }?.correo
+    fun observarPreferencias(usuarioId: Long) = usuarioDao.observarPreferencias(usuarioId)
+
+    suspend fun guardarPerfil(usuarioId: Long, nombre: String, correo: String, avatar: String,
+        preferencias: com.example.museodelosmuseos.data.local.entity.PreferenciasUsuario) = database.withTransaction {
+        val sesion = sesionDao.obtenerSesion()
+        ReglasPerfil.acceso(sesion, usuarioId)?.let { error(it) }
+        ReglasPerfil.nombre(nombre)?.let { error(it) }
+        ReglasPerfil.correo(correo)?.let { error(it) }
+        ReglasPerfil.avatar(avatar, usuarioId)?.let { error(it) }
+        require(preferencias.usuarioId == usuarioId) { "Las preferencias pertenecen a otro usuario." }
+        val existente = usuarioDao.buscarPorCorreo(correo.trim())
+        check(existente == null || existente.id == usuarioId) { "El correo ya está registrado por otro usuario." }
+        check(usuarioDao.actualizarPerfil(usuarioId, nombre.trim(), correo.trim().lowercase(java.util.Locale.ROOT), avatar) == 1) { "El usuario ya no existe." }
+        usuarioDao.guardarPreferencias(preferencias)
+        sesionDao.guardarSesion(sesion!!.copy(nombre = nombre.trim(), correo = correo.trim().lowercase(java.util.Locale.ROOT), avatar = avatar))
+    }
+
+    suspend fun cerrarSesionDePerfil(usuarioId: Long) = database.withTransaction {
+        ReglasPerfil.acceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
+        sesionDao.cerrarSesion()
+    }
+
     fun observarSesion(): Flow<SesionActiva?> = sesionDao.observarSesion()
 
     suspend fun obtenerSesion(): SesionActiva? = sesionDao.obtenerSesion()

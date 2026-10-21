@@ -53,9 +53,10 @@ import kotlinx.coroutines.launch
         PedidoLocal::class,
         PedidoLinea::class,
         AvisoLocal::class,
-        AvisoLectura::class
+        AvisoLectura::class,
+        com.example.museodelosmuseos.data.local.entity.PreferenciasUsuario::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -73,6 +74,14 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val NOMBRE_BD = "museo_de_los_museos.db"
         const val CLAVE_CATALOGO_PRECARGADO = "CATALOGO_PRECARGADO_V1"
+
+        val MIGRACION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `preferencias_usuario` (
+                    `usuarioId` INTEGER NOT NULL, `indicadorAvisos` INTEGER NOT NULL, `textoGrande` INTEGER NOT NULL,
+                    PRIMARY KEY(`usuarioId`), FOREIGN KEY(`usuarioId`) REFERENCES `usuarios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)""")
+            }
+        }
 
         /** Solo agrega avisos y lecturas. Conserva todas las tablas y registros anteriores. */
         val MIGRACION_5_6 = object : Migration(5, 6) {
@@ -182,8 +191,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     NOMBRE_BD
                 )
-                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5, MIGRACION_5_6)
-                    .fallbackToDestructiveMigration(dropAllTables = true)
+                    .addMigrations(MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5, MIGRACION_5_6, MIGRACION_6_7)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
@@ -198,7 +206,7 @@ abstract class AppDatabase : RoomDatabase() {
                             // respetando la bandera persistente de precarga única
                             CoroutineScope(Dispatchers.IO).launch {
                                 val dbInstancia = obtenerInstancia(context)
-                                val adminExiste = dbInstancia.usuarioDao().buscarPorCorreo("admin@museo.org")
+                                val adminExiste = dbInstancia.usuarioDao().obtenerPorRol("ADMINISTRADOR").firstOrNull()
                                 val yaPrecargado = dbInstancia.controlInicializacionDao().existeClave(CLAVE_CATALOGO_PRECARGADO) > 0
                                 if (adminExiste == null || !yaPrecargado) {
                                     precargarDatosIniciales(dbInstancia)
