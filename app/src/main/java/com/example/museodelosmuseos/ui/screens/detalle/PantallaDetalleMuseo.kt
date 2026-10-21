@@ -283,6 +283,34 @@ private fun BannerImagenReferencial(museo: Museo) {
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            // Fondo y emblema patrimonial de respaldo siempre presente
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(AzulMuseoMedio, AzulMuseoProfundo)
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(CircleShape)
+                        .background(AzulMuseoProfundo)
+                        .border(2.dp, DoradoPatrimonial, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AccountBalance,
+                        contentDescription = "Monumento",
+                        tint = DoradoBrillante,
+                        modifier = Modifier.size(38.dp)
+                    )
+                }
+            }
+
             if (museo.imagenUrl.isNotBlank()) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -303,38 +331,6 @@ private fun BannerImagenReferencial(museo: Museo) {
                             )
                         )
                 )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(AzulMuseoMedio, AzulMuseoProfundo)
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(70.dp)
-                                .clip(CircleShape)
-                                .background(AzulMuseoProfundo)
-                                .border(2.dp, DoradoPatrimonial, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.AccountBalance,
-                                contentDescription = "Monumento",
-                                tint = DoradoBrillante,
-                                modifier = Modifier.size(38.dp)
-                            )
-                        }
-                    }
-                }
             }
 
             // Badge con el país en la esquina inferior izquierda

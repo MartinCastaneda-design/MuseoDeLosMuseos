@@ -34,7 +34,7 @@ class MuseoApiService {
                 longitud = -74.0758,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-colonial",
                 codigoQr = "MUSEO_COLONIAL_BOGOTA",
-                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Museo_Colonial_Bogot%C3%A1.jpg/800px-Museo_Colonial_Bogot%C3%A1.jpg"
+                imagenUrl = "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&auto=format&fit=crop&q=80"
             ),
             Museo(
                 nombre = "Museo Nacional de Bellas Artes",
@@ -46,7 +46,7 @@ class MuseoApiService {
                 longitud = -70.6433,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-nacional-de-bellas-artes-chile",
                 codigoQr = "MUSEO_BELLAS_ARTES_CHILE",
-                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg/800px-Museo_Nacional_de_Bellas_Artes_de_Chile_-_Diciembre_2016.jpg"
+                imagenUrl = "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80"
             ),
             Museo(
                 nombre = "Museo Nacional del Prado",
@@ -58,7 +58,7 @@ class MuseoApiService {
                 longitud = -3.6921,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-del-prado",
                 codigoQr = "MUSEO_PRADO_MADRID",
-                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/800px-Museo_del_Prado_2016_%2825185969599%29.jpg"
+                imagenUrl = "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&auto=format&fit=crop&q=80"
             ),
             Museo(
                 nombre = "Museo de Arte Moderno",
@@ -70,7 +70,7 @@ class MuseoApiService {
                 longitud = -99.1795,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-de-arte-moderno-mexico",
                 codigoQr = "MUSEO_MAM_MEXICO",
-                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Museo_de_Arte_Moderno_%28MAM%29_-_Ciudad_de_M%C3%A9xico.jpg/800px-Museo_de_Arte_Moderno_%28MAM%29_-_Ciudad_de_M%C3%A9xico.jpg"
+                imagenUrl = "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=800&auto=format&fit=crop&q=80"
             ),
             Museo(
                 nombre = "Museo de Arte de Lima (MALI)",
@@ -82,7 +82,7 @@ class MuseoApiService {
                 longitud = -77.0369,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-de-arte-de-lima-mali",
                 codigoQr = "MUSEO_MALI_LIMA",
-                imagenUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Palacio_de_la_Exposici%C3%B3n_%28MALI%29_Lima_Peru.jpg/800px-Palacio_de_la_Exposici%C3%B3n_%28MALI%29_Lima_Peru.jpg"
+                imagenUrl = "https://images.unsplash.com/photo-1572953109213-3be62398eb95?w=800&auto=format&fit=crop&q=80"
             )
         )
     }

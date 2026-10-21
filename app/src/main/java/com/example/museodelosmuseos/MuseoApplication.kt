@@ -1,15 +1,23 @@
 package com.example.museodelosmuseos
 
 import android.app.Application
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import com.example.museodelosmuseos.data.local.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 import org.osmdroid.config.Configuration
 import java.io.File
 
 /**
  * Clase Application personalizada para inicializar dependencias globales
- * de OSMDroid a nivel de proceso antes de que se instancie cualquier vista.
+ * de OSMDroid, Coil ImageLoader y Room a nivel de proceso antes de que se instancie cualquier vista.
  */
-class MuseoApplication : Application() {
+class MuseoApplication : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
@@ -27,12 +35,44 @@ class MuseoApplication : Application() {
         config.osmdroidBasePath = osmdroidBasePath
         config.osmdroidTileCache = osmdroidTileCache
 
-        // Inicializar Room proactivamente para que los usuarios y museos estén cargados de inmediato
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            val db = com.example.museodelosmuseos.data.local.AppDatabase.obtenerInstancia(this@MuseoApplication)
+        // Inicializar Room proactivamente y actualizar URLs de imágenes a enlaces directos y estables
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = AppDatabase.obtenerInstancia(this@MuseoApplication)
             if (db.usuarioDao().buscarPorCorreo("admin@museo.org") == null) {
-                com.example.museodelosmuseos.data.local.AppDatabase.precargarDatosIniciales(db)
+                AppDatabase.precargarDatosIniciales(db)
+            } else {
+                AppDatabase.actualizarImagenesSiEsNecesario(db)
             }
         }
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .crossfade(true)
+            .okHttpClient {
+                OkHttpClient.Builder()
+                    .addInterceptor { chain ->
+                        val request = chain.request().newBuilder()
+                            .header(
+                                "User-Agent",
+                                "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 MuseoDeLosMuseos/1.0"
+                            )
+                            .build()
+                        chain.proceed(request)
+                    }
+                    .build()
+            }
+            .memoryCache {
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizeBytes(50L * 1024 * 1024) // 50MB
+                    .build()
+            }
+            .build()
     }
 }

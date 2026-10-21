@@ -41,6 +41,9 @@ interface MuseoDao {
     """)
     suspend fun buscarPorCodigoQr(codigoQr: String): Museo?
 
+    @Query("UPDATE museos SET imagenUrl = :imagenUrl WHERE codigoQr = :codigoQr")
+    suspend fun actualizarImagenPorQr(codigoQr: String, imagenUrl: String)
+
     @Query("SELECT * FROM museos WHERE pais = :pais ORDER BY nombre ASC")
     fun observarPorPais(pais: String): Flow<List<Museo>>
 

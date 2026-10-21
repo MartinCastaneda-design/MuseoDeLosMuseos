@@ -539,6 +539,14 @@ private fun TarjetaMuseoDestacado(museo: Museo, onClick: () -> Unit) {
                     .background(AzulMuseoMedio),
                 contentAlignment = Alignment.Center
             ) {
+                // Emblema patrimonial de respaldo visible mientras carga o sin conexión
+                Icon(
+                    imageVector = Icons.Filled.AccountBalance,
+                    contentDescription = null,
+                    tint = DoradoPatrimonial.copy(alpha = 0.5f),
+                    modifier = Modifier.size(36.dp)
+                )
+
                 if (museo.imagenUrl.isNotBlank()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
@@ -548,13 +556,6 @@ private fun TarjetaMuseoDestacado(museo: Museo, onClick: () -> Unit) {
                         contentDescription = museo.nombre,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.AccountBalance,
-                        contentDescription = null,
-                        tint = DoradoPatrimonial,
-                        modifier = Modifier.size(38.dp)
                     )
                 }
             }
@@ -930,6 +931,13 @@ private fun ContenidoCatalogo(
                             .background(AzulMuseoMedio),
                         contentAlignment = Alignment.Center
                     ) {
+                        Icon(
+                            imageVector = Icons.Filled.AccountBalance,
+                            contentDescription = null,
+                            tint = DoradoBrillante.copy(alpha = 0.5f),
+                            modifier = Modifier.size(24.dp)
+                        )
+
                         if (museo.imagenUrl.isNotBlank()) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
@@ -940,8 +948,6 @@ private fun ContenidoCatalogo(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
-                        } else {
-                            Icon(Icons.Filled.AccountBalance, contentDescription = null, tint = DoradoBrillante, modifier = Modifier.size(24.dp))
                         }
                     }
                     Spacer(modifier = Modifier.width(12.dp))

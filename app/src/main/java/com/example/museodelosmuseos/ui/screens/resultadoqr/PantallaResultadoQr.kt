@@ -303,6 +303,13 @@ private fun TarjetaMuseoIdentificado(
                     .background(AzulMuseoMedio),
                 contentAlignment = Alignment.Center
             ) {
+                Icon(
+                    imageVector = Icons.Filled.AccountBalance,
+                    contentDescription = null,
+                    tint = DoradoPatrimonial.copy(alpha = 0.5f),
+                    modifier = Modifier.size(56.dp)
+                )
+
                 if (museo != null && museo.imagenUrl.isNotBlank()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
@@ -312,13 +319,6 @@ private fun TarjetaMuseoIdentificado(
                         contentDescription = titulo,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.AccountBalance,
-                        contentDescription = null,
-                        tint = DoradoPatrimonial,
-                        modifier = Modifier.size(56.dp)
                     )
                 }
 
