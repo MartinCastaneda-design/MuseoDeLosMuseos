@@ -71,34 +71,18 @@ import com.example.museodelosmuseos.ui.theme.TextoApagado
 import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 
-/**
- * ============================================================================
- * PANTALLA 1: BIENVENIDA / INICIO
- * ============================================================================
- * Roles: Administrador, Investigador y Cliente.
- *
- * Características:
- * - Identidad cultural "Museo de los Museos".
- * - Breve reseña de servicios educativos y patrimoniales de Iberoamérica.
- * - Animación inicial fluida (entrada escalonada + pulso sutil del emblema).
- * - Acceso claro a mapa de museos virtuales, catálogo y cursos.
- * - Botón principal "Comenzar" hacia selección de rol o registro.
- * - Botón secundario "Ya tengo cuenta" hacia inicio de sesión.
- * ============================================================================
- */
 @Composable
 fun PantallaBienvenida(
     onComenzarClick: () -> Unit,
     onIniciarSesionClick: () -> Unit,
     onExplorarMapaClick: () -> Unit
 ) {
-    // Control de animación de entrada
+
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         visible = true
     }
 
-    // Animación continua de pulso sutil para el ícono de templo/museo (IE 2.2.2)
     val transicionInfinita = rememberInfiniteTransition(label = "pulso_emblema")
     val escalaEmblema by transicionInfinita.animateFloat(
         initialValue = 0.95f,
@@ -139,7 +123,6 @@ fun PantallaBienvenida(
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // ---- 1. EMBLEMA INSTITUCIONAL CON ANIMACIÓN ----
                 Box(
                     modifier = Modifier
                         .size(90.dp)
@@ -161,7 +144,6 @@ fun PantallaBienvenida(
                     )
                 }
 
-                // ---- 2. TEXTOS DE BIENVENIDA CON ANIMACIÓN DE ENTRADA ----
                 AnimatedVisibility(
                     visible = visible,
                     enter = fadeIn(tween(800)) + slideInVertically(
@@ -201,7 +183,6 @@ fun PantallaBienvenida(
                     }
                 }
 
-                // ---- 3. TARJETA DESTACADA (SERVICIOS CULTURALES) ----
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -242,7 +223,6 @@ fun PantallaBienvenida(
                     }
                 }
 
-                // ---- 4. BOTONES DE ACCIÓN PRINCIPAL ----
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -323,7 +303,6 @@ fun PantallaBienvenida(
                     }
                 }
 
-                // ---- 5. PIE INSTITUCIONAL ----
                 Text(
                     text = "Red de Museos Virtuales de Iberoamérica • 2025",
                     style = MaterialTheme.typography.labelSmall,
@@ -336,9 +315,6 @@ fun PantallaBienvenida(
     }
 }
 
-/**
- * Fila reutilizable para resumir cada servicio cultural en la pantalla de bienvenida.
- */
 @Composable
 private fun ItemServicioCultural(
     icono: ImageVector,

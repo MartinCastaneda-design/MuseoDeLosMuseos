@@ -5,10 +5,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Tabla intermedia para asociar museos favoritos a cada usuario específico.
- * Garantiza que cada perfil mantenga sus propios favoritos separados en el mismo teléfono.
- */
 @Entity(
     tableName = "favoritos_museo",
     indices = [

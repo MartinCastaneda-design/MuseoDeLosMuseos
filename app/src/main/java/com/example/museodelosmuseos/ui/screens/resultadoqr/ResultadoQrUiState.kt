@@ -2,15 +2,6 @@ package com.example.museodelosmuseos.ui.screens.resultadoqr
 
 import com.example.museodelosmuseos.data.local.entity.Museo
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: ResultadoQrUiState
- * ============================================================================
- * Estado inmutable de la Pantalla 8: Resultado QR.
- * Contiene el código escaneado, la validez del resultado, la entidad Museo
- * encontrada (si aplica), la descripción e imagen, y el disparador de animación.
- * ============================================================================
- */
 data class ResultadoQrUiState(
     val codigo: String = "",
     val titulo: String = "",

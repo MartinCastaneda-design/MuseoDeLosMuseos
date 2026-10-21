@@ -9,18 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: DetalleMuseoViewModel
- * ============================================================================
- * Propósito:
- * Gestiona la lógica de presentación del Detalle del Museo Virtual (Pantalla 6).
- * Satisface los requerimientos de la pauta:
- * - El Cliente guarda/quita el museo entre sus favoritos en SQLite.
- * - El Investigador accede a formularios para corregir fichas museológicas.
- * - El Administrador revisa y autoriza su publicación oficial.
- * ============================================================================
- */
 class DetalleMuseoViewModel(
     private val repository: MuseoRepository,
     private val museoId: Long
@@ -34,7 +22,7 @@ class DetalleMuseoViewModel(
     }
 
     private fun cargarDatos() {
-        // Observar datos del museo
+
         viewModelScope.launch {
             repository.observarMuseo(museoId).collect { museo ->
                 _uiState.update { estado ->
@@ -47,7 +35,6 @@ class DetalleMuseoViewModel(
             }
         }
 
-        // Observar sesión y favoritos del usuario
         viewModelScope.launch {
             repository.observarSesion().collect { sesion ->
                 _uiState.update { it.copy(sesion = sesion) }
@@ -60,9 +47,6 @@ class DetalleMuseoViewModel(
         }
     }
 
-    /**
-     * Requisito de la pauta: "El Cliente puede guardar el museo entre sus favoritos."
-     */
     fun alternarFavorito() {
         val sesion = _uiState.value.sesion ?: return
         val nuevoEstado = !_uiState.value.esFavorito
@@ -80,8 +64,6 @@ class DetalleMuseoViewModel(
             }
         }
     }
-
-    // --- FUNCIONALIDAD PARA INVESTIGADOR ---
 
     fun abrirDialogoEdicion() {
         _uiState.update {
@@ -104,9 +86,6 @@ class DetalleMuseoViewModel(
         _uiState.update { it.copy(notasInvestigacion = notas) }
     }
 
-    /**
-     * Requisito de la pauta: "El Investigador accede a formularios para registrar o corregir fichas museológicas"
-     */
     fun guardarCorreccionFicha() {
         val museoActual = _uiState.value.museo ?: return
         val nuevaDescripcion = _uiState.value.descripcionEditada.trim()
@@ -128,8 +107,6 @@ class DetalleMuseoViewModel(
         }
     }
 
-    // --- FUNCIONALIDAD PARA ADMINISTRADOR ---
-
     fun abrirDialogoRevision() {
         _uiState.update { it.copy(mostrarDialogoRevision = true) }
     }
@@ -138,9 +115,6 @@ class DetalleMuseoViewModel(
         _uiState.update { it.copy(mostrarDialogoRevision = false) }
     }
 
-    /**
-     * Requisito de la pauta: "el Administrador puede revisar su publicación"
-     */
     fun autorizarPublicacion() {
         _uiState.update {
             it.copy(

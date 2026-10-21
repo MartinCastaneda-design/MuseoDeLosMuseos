@@ -85,20 +85,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * ============================================================================
- * PANTALLA 7: ESCÁNER QR
- * ============================================================================
- * Cumple con los requerimientos de la pauta:
- * - Roles: Investigador y Cliente.
- * - Activa la cámara para leer códigos QR asociados a museos/exposiciones.
- * - Implementa Google Code Scanner (ML Kit) según la lógica del profesor.
- * - Valida el código y determina qué ficha debe abrir.
- * - El Investigador puede probar los códigos de los registros que administra.
- * - Las lecturas correctas se agregan al historial local en SQLite (Room)
- *   evitando registros duplicados innecesarios.
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaEscanerQr(
@@ -120,7 +106,6 @@ fun PantallaEscanerQr(
         }
     }
 
-    // Configuración oficial del escáner según el ejemplo del profesor
     val scannerOptions = remember {
         GmsBarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
@@ -172,7 +157,7 @@ fun PantallaEscanerQr(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. Tarjeta Principal de Escaneo con Cámara
+
                 item {
                     TarjetaMarcoEscaner(
                         procesando = estado.procesando,
@@ -185,13 +170,12 @@ fun PantallaEscanerQr(
                                     }
                                 }
                                 .addOnFailureListener {
-                                    // Manejo de cancelación o error de escáner
+
                                 }
                         }
                     )
                 }
 
-                // 2. Sección para el INVESTIGADOR: Probar códigos de registros administrados
                 if (rol == "INVESTIGADOR" || rol == "ADMINISTRADOR") {
                     item {
                         SeccionPruebaInvestigador(
@@ -205,7 +189,6 @@ fun PantallaEscanerQr(
                     }
                 }
 
-                // 3. Historial Local en SQLite (Room)
                 item {
                     Text(
                         text = "Historial de Lecturas QR (SQLite)",
@@ -259,9 +242,6 @@ fun PantallaEscanerQr(
     }
 }
 
-/**
- * 1. Tarjeta visual del escáner con botón para activar Google Code Scanner.
- */
 @Composable
 private fun TarjetaMarcoEscaner(
     procesando: Boolean,
@@ -343,9 +323,6 @@ private fun TarjetaMarcoEscaner(
     }
 }
 
-/**
- * 2. Sección exclusiva para el Investigador: Probar códigos de registros administrados.
- */
 @Composable
 private fun SeccionPruebaInvestigador(
     codigosDisponibles: List<String>,
@@ -390,7 +367,6 @@ private fun SeccionPruebaInvestigador(
                 }
             }
 
-            // Chips rápidos con códigos registrados en Room
             Text(
                 text = "Códigos de prueba rápidos:",
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -415,7 +391,6 @@ private fun SeccionPruebaInvestigador(
                 }
             }
 
-            // Entrada manual para validar cualquier código
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -455,9 +430,6 @@ private fun SeccionPruebaInvestigador(
     }
 }
 
-/**
- * 3. Tarjeta de ítem del historial en SQLite.
- */
 @Composable
 private fun TarjetaItemHistorial(
     item: HistorialQr,

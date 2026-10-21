@@ -10,21 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: EscanerQrViewModel
- * ============================================================================
- * Propósito:
- * Gestiona el escaneo y validación de códigos QR de museos, exposiciones o
- * piezas patrimoniales.
- *
- * Cumple con los requerimientos de la pauta:
- * - Valida el código y determina qué ficha debe abrir.
- * - El Investigador puede probar los códigos de los registros que administra.
- * - Las lecturas correctas se agregan al historial local en SQLite (Room),
- *   evitando registros duplicados innecesarios.
- * ============================================================================
- */
 class EscanerQrViewModel(
     private val repository: MuseoRepository
 ) : ViewModel() {
@@ -59,10 +44,6 @@ class EscanerQrViewModel(
         }
     }
 
-    /**
-     * Valida el código QR leído por la cámara o seleccionado por el Investigador.
-     * Determina la ficha correspondiente y guarda la lectura en SQLite (Room).
-     */
     fun procesarCodigoQr(codigoLeido: String, onNavegarAResultado: (DestinoPantalla.ResultadoQr) -> Unit) {
         val codigoLimpio = codigoLeido.trim()
         if (codigoLimpio.isBlank()) {
@@ -76,11 +57,10 @@ class EscanerQrViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(procesando = true, mensajeError = null) }
 
-            // 1. Validar el código contra la base de datos de museos
             val museoEncontrado = repository.buscarMuseoPorQr(codigoLimpio)
 
             if (museoEncontrado != null) {
-                // Lectura correcta: agregar al historial SQLite evitando duplicados (vía REPLACE en Room)
+
                 repository.registrarLecturaQr(
                     usuarioId = usuarioId,
                     codigo = codigoLimpio,
@@ -91,7 +71,6 @@ class EscanerQrViewModel(
 
                 _uiState.update { it.copy(procesando = false) }
 
-                // Navegar a Resultado QR (Pantalla 8) con la ficha identificada
                 onNavegarAResultado(
                     DestinoPantalla.ResultadoQr(
                         codigo = codigoLimpio,
@@ -102,7 +81,7 @@ class EscanerQrViewModel(
                     )
                 )
             } else {
-                // Código no reconocido
+
                 _uiState.update { it.copy(procesando = false) }
 
                 onNavegarAResultado(

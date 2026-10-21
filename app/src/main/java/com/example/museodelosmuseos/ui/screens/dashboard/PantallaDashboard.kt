@@ -88,20 +88,6 @@ import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 import com.example.museodelosmuseos.ui.theme.VerdeExito
 
-/**
- * ============================================================================
- * PANTALLA 4: DASHBOARD / PANTALLA PRINCIPAL
- * ============================================================================
- * Cumple con los requerimientos de la pauta:
- * - Roles: Administrador, Investigador y Cliente.
- * - Resumen adaptado al rol activo.
- * - Para Cliente: museos destacados, cursos, productos y accesos rápidos.
- * - Para Administrador: solicitudes y novedades de gestión.
- * - Para Investigador: registros museológicos y herramientas.
- * - Incorpora tarjetas, pequeñas animaciones y una barra de navegación inferior
- *   hacia: Inicio, Mapa, Catálogo, Notificaciones y Perfil.
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaDashboard(
@@ -208,7 +194,7 @@ fun PantallaDashboard(
                         )
                     }
                     TabDashboard.MAPA -> {
-                        // Navegación interceptada, pero en caso de seleccionarse:
+
                         ContenidoPlaceholder(
                             titulo = "Mapa Interactivo",
                             descripcion = "Explora los museos geolocalizados de Iberoamérica.",
@@ -237,10 +223,6 @@ fun PantallaDashboard(
     }
 }
 
-/**
- * Barra de navegación inferior con las 5 secciones requeridas:
- * Inicio, Mapa, Catálogo, Notificaciones y Perfil.
- */
 @Composable
 private fun BarraNavegacionInferior(
     tabSeleccionada: TabDashboard,
@@ -284,9 +266,6 @@ private fun BarraNavegacionInferior(
     }
 }
 
-/**
- * Resumen adaptado al rol del usuario en la pestaña INICIO.
- */
 @Composable
 private fun ContenidoInicioSegunRol(
     sesion: SesionActiva?,
@@ -303,14 +282,14 @@ private fun ContenidoInicioSegunRol(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Banner de bienvenida con rol
+
         item {
             BannerBienvenidaRol(sesion = sesion)
         }
 
         when (rol) {
             "ADMINISTRADOR" -> {
-                // ---- ROL ADMINISTRADOR ----
+
                 item {
                     SeccionAdminMetricas()
                 }
@@ -323,7 +302,7 @@ private fun ContenidoInicioSegunRol(
             }
 
             "INVESTIGADOR" -> {
-                // ---- ROL INVESTIGADOR ----
+
                 item {
                     SeccionInvestigadorAccesos(
                         onNavegarAEscanerQr = onNavegarAEscanerQr,
@@ -339,7 +318,7 @@ private fun ContenidoInicioSegunRol(
             }
 
             else -> {
-                // ---- ROL CLIENTE ----
+
                 item {
                     SeccionAccesosRapidos(
                         onNavegarAMapa = onNavegarAMapa,
@@ -379,9 +358,6 @@ private fun ContenidoInicioSegunRol(
     }
 }
 
-/**
- * Banner superior con saludo y rol activo.
- */
 @Composable
 private fun BannerBienvenidaRol(sesion: SesionActiva?) {
     Card(
@@ -439,10 +415,6 @@ private fun BannerBienvenidaRol(sesion: SesionActiva?) {
         }
     }
 }
-
-// ============================================================================
-// COMPONENTES: CLIENTE (Destacados, Cursos, Productos, Accesos rápidos)
-// ============================================================================
 
 @Composable
 private fun SeccionAccesosRapidos(
@@ -539,7 +511,7 @@ private fun TarjetaMuseoDestacado(museo: Museo, onClick: () -> Unit) {
                     .background(AzulMuseoMedio),
                 contentAlignment = Alignment.Center
             ) {
-                // Emblema patrimonial de respaldo visible mientras carga o sin conexión
+
                 Icon(
                     imageVector = Icons.Filled.AccountBalance,
                     contentDescription = null,
@@ -673,10 +645,6 @@ private fun SeccionProductosTienda() {
     }
 }
 
-// ============================================================================
-// COMPONENTES: ADMINISTRADOR (Solicitudes y novedades de gestión)
-// ============================================================================
-
 @Composable
 private fun SeccionAdminMetricas() {
     Column {
@@ -788,10 +756,6 @@ private fun SeccionAdminNovedades() {
     }
 }
 
-// ============================================================================
-// COMPONENTES: INVESTIGADOR (Registros museológicos)
-// ============================================================================
-
 @Composable
 private fun SeccionInvestigadorAccesos(
     onNavegarAEscanerQr: () -> Unit,
@@ -883,10 +847,6 @@ private fun SeccionInvestigadorHerramientas() {
         }
     }
 }
-
-// ============================================================================
-// OTRAS PESTAÑAS: CATÁLOGO, NOTIFICACIONES, PERFIL
-// ============================================================================
 
 @Composable
 private fun ContenidoCatalogo(

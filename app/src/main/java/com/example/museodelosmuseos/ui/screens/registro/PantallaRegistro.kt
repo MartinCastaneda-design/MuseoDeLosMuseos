@@ -79,17 +79,6 @@ import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 import com.example.museodelosmuseos.ui.theme.VerdeExito
 
-/**
- * ============================================================================
- * PANTALLA 2: REGISTRO DE USUARIO (ROL CLIENTE)
- * ============================================================================
- * Cumple con los criterios de la pauta:
- * - Formulario para registrar nombre, correo, contraseña y selección de avatar.
- * - Validación desacoplada mediante ViewModel y StateFlow (IE 2.2.1).
- * - Retroalimentación visual clara con íconos por campo y mensajes de error (IE 2.1.2).
- * - Almacenamiento local del perfil en Room / SQLite (IE 2.3.1).
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaRegistro(
@@ -98,7 +87,7 @@ fun PantallaRegistro(
     onRegistroExitoso: () -> Unit,
     onIrALogin: () -> Unit
 ) {
-    // 1. collectAsStateWithLifecycle(): Suscripción consciente del ciclo de vida (estándar de clase)
+
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
     var mostrarContrasena by remember { mutableStateOf(false) }
@@ -149,7 +138,7 @@ fun PantallaRegistro(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // ---- ENCABEZADO Y EMBLEMA ----
+
                 Box(
                     modifier = Modifier
                         .size(64.dp)
@@ -178,7 +167,6 @@ fun PantallaRegistro(
                     textAlign = TextAlign.Center
                 )
 
-                // Mensaje de error general si el correo ya existe en Room
                 if (estado.errorServidor != null) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -204,7 +192,6 @@ fun PantallaRegistro(
                     }
                 }
 
-                // ---- CAMPO 1: NOMBRE COMPLETO ----
                 CampoTextoConIcono(
                     etiqueta = "Nombre completo",
                     campo = estado.nombre,
@@ -213,7 +200,6 @@ fun PantallaRegistro(
                     mostrarError = estado.intentoEnviar || estado.nombre.error != null
                 )
 
-                // ---- CAMPO 2: CORREO ELECTRÓNICO ----
                 CampoTextoConIcono(
                     etiqueta = "Correo electrónico",
                     campo = estado.correo,
@@ -223,7 +209,6 @@ fun PantallaRegistro(
                     mostrarError = estado.intentoEnviar || estado.correo.error != null
                 )
 
-                // ---- CAMPO 3: CONTRASEÑA ----
                 OutlinedTextField(
                     value = estado.contrasena.valor,
                     onValueChange = viewModel::cambiarContrasena,
@@ -264,7 +249,6 @@ fun PantallaRegistro(
                     )
                 )
 
-                // ---- SELECCIÓN DE AVATAR FICTICIO ----
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -312,7 +296,6 @@ fun PantallaRegistro(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // ---- BOTÓN DE REGISTRO ----
                 Button(
                     onClick = {
                         viewModel.registrar(onExito = onRegistroExitoso)
@@ -342,7 +325,6 @@ fun PantallaRegistro(
                     }
                 }
 
-                // ---- ENLACE A INICIAR SESIÓN ----
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -367,10 +349,6 @@ fun PantallaRegistro(
     }
 }
 
-/**
- * Componente modular para un campo de texto con ícono principal,
- * retroalimentación visual de error o éxito e integración al UDF.
- */
 @Composable
 private fun CampoTextoConIcono(
     etiqueta: String,
@@ -424,9 +402,6 @@ private fun CampoTextoConIcono(
     )
 }
 
-/**
- * Elemento de avatar circular seleccionable.
- */
 @Composable
 private fun ItemAvatar(
     id: String,

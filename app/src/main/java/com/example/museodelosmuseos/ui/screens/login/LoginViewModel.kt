@@ -11,15 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: LoginViewModel
- * ============================================================================
- * Propósito:
- * Gestiona la autenticación de usuarios, la selección rápida de roles demo
- * académicos (Admin, Investigador, Cliente) y la activación de sesión en Room.
- * ============================================================================
- */
 class LoginViewModel(
     private val repository: MuseoRepository
 ) : ViewModel() {
@@ -28,14 +19,10 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     init {
-        // Inicializar con la cuenta demo de Cliente por defecto
+
         seleccionarRolDemo(Rol.CLIENTE)
     }
 
-    /**
-     * Rellena automáticamente las credenciales académicas de prueba
-     * según el rol seleccionado para facilitar la evaluación rápida (requerimiento de la pauta).
-     */
     fun seleccionarRolDemo(rol: Rol) {
         val (correoDemo, passDemo) = when (rol) {
             Rol.ADMINISTRADOR -> Pair("admin@museo.org", "admin123")
@@ -112,8 +99,6 @@ class LoginViewModel(
             )
         }
     }
-
-    // --- REGLAS DE NEGOCIO PRIVADAS ---
 
     private fun validarCorreo(valor: String): String? = when {
         valor.isBlank() -> "El correo es obligatorio"

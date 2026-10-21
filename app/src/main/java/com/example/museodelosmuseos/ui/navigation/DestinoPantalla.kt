@@ -1,9 +1,5 @@
 package com.example.museodelosmuseos.ui.navigation
 
-/**
- * Destinos de navegación reactiva para las pantallas del proyecto.
- * Permite cambiar de pantalla mediante estado en Compose de forma segura y tipada.
- */
 sealed interface DestinoPantalla {
     data object Bienvenida : DestinoPantalla
     data object Registro : DestinoPantalla

@@ -95,19 +95,6 @@ import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 import com.example.museodelosmuseos.ui.theme.VerdeExito
 
-/**
- * ============================================================================
- * PANTALLA 6: DETALLE DEL MUSEO VIRTUAL
- * ============================================================================
- * Cumple con los requerimientos de la pauta:
- * - Roles: Administrador, Investigador y Cliente.
- * - Muestra nombre, país, descripción, imagen referencial, clasificación
- *   y enlace al recorrido virtual.
- * - El Cliente puede guardar el museo entre sus favoritos en SQLite.
- * - El Investigador accede a formularios para corregir fichas museológicas.
- * - El Administrador puede revisar y validar su publicación.
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaDetalleMuseo(
@@ -152,7 +139,7 @@ fun PantallaDetalleMuseo(
                     }
                 },
                 actions = {
-                    // Si el usuario es Cliente, acceso directo al botón de favoritos
+
                     if (rol == "CLIENTE") {
                         IconButton(onClick = { viewModel.alternarFavorito() }) {
                             Icon(
@@ -193,13 +180,11 @@ fun PantallaDetalleMuseo(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // 1. Imagen Referencial Patrimonial
+
                         BannerImagenReferencial(museo = museo)
 
-                        // 2. Información General
                         TarjetaInformacionGeneral(museo = museo)
 
-                        // 3. Ubicación y Enlace al Recorrido Virtual 360
                         TarjetaRecorridoVirtual(
                             museo = museo,
                             onExplorarEnApp = {
@@ -212,12 +197,11 @@ fun PantallaDetalleMuseo(
                                     }
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    // Fallback seguro
+
                                 }
                             }
                         )
 
-                        // 4. Panel de Acciones según el Rol (Requisito estricto de la pauta)
                         SeccionAccionesPorRol(
                             rol = rol,
                             esFavorito = estado.esFavorito,
@@ -234,7 +218,6 @@ fun PantallaDetalleMuseo(
         }
     }
 
-    // Diálogo modal para que el Investigador corrija la ficha museológica
     if (estado.mostrarDialogoEdicion) {
         DialogoEdicionInvestigador(
             descripcionActual = estado.descripcionEditada,
@@ -246,7 +229,6 @@ fun PantallaDetalleMuseo(
         )
     }
 
-    // Diálogo modal para que el Administrador revise y autorice la publicación
     if (estado.mostrarDialogoRevision) {
         DialogoRevisionAdministrador(
             museo = estado.museo,
@@ -255,7 +237,6 @@ fun PantallaDetalleMuseo(
         )
     }
 
-    // Visor interactivo 360 embebido en pantalla completa dentro de la App
     if (mostrarVisor360) {
         estado.museo?.let { museo ->
             VisorRecorridoVirtualDialog(
@@ -267,9 +248,6 @@ fun PantallaDetalleMuseo(
     }
 }
 
-/**
- * 1. Imagen referencial del museo con emblema monumental y badges.
- */
 @Composable
 private fun BannerImagenReferencial(museo: Museo) {
     Card(
@@ -283,7 +261,7 @@ private fun BannerImagenReferencial(museo: Museo) {
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Fondo y emblema patrimonial de respaldo siempre presente
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -321,7 +299,7 @@ private fun BannerImagenReferencial(museo: Museo) {
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-                // Sombreado inferior para legibilidad del texto
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -333,7 +311,6 @@ private fun BannerImagenReferencial(museo: Museo) {
                 )
             }
 
-            // Badge con el país en la esquina inferior izquierda
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -358,9 +335,6 @@ private fun BannerImagenReferencial(museo: Museo) {
     }
 }
 
-/**
- * 2. Datos generales del museo (Nombre, Clasificación, Descripción).
- */
 @Composable
 private fun TarjetaInformacionGeneral(museo: Museo) {
     Card(
@@ -413,9 +387,6 @@ private fun TarjetaInformacionGeneral(museo: Museo) {
     }
 }
 
-/**
- * 3. Enlace al recorrido virtual 360° y coordenadas geográficas.
- */
 @Composable
 private fun TarjetaRecorridoVirtual(
     museo: Museo,
@@ -451,7 +422,6 @@ private fun TarjetaRecorridoVirtual(
                 }
             }
 
-            // Opción 1: Recorrido 360 interactivo dentro de la App
             Button(
                 onClick = onExplorarEnApp,
                 modifier = Modifier
@@ -472,7 +442,6 @@ private fun TarjetaRecorridoVirtual(
                 )
             }
 
-            // Opción 2: Abrir en navegador externo
             OutlinedButton(
                 onClick = onAbrirEnNavegador,
                 modifier = Modifier
@@ -496,9 +465,6 @@ private fun TarjetaRecorridoVirtual(
     }
 }
 
-/**
- * 4. Panel dinámico adaptado al rol del usuario.
- */
 @Composable
 private fun SeccionAccionesPorRol(
     rol: String,
@@ -525,7 +491,7 @@ private fun SeccionAccionesPorRol(
 
             when (rol) {
                 "CLIENTE" -> {
-                    // Cliente: Guardar entre favoritos
+
                     OutlinedButton(
                         onClick = onAlternarFavorito,
                         modifier = Modifier
@@ -554,7 +520,7 @@ private fun SeccionAccionesPorRol(
                 }
 
                 "INVESTIGADOR" -> {
-                    // Investigador: Acceso a formularios para registrar o corregir fichas
+
                     Button(
                         onClick = onAbrirEdicionInvestigador,
                         modifier = Modifier
@@ -573,7 +539,7 @@ private fun SeccionAccionesPorRol(
                 }
 
                 "ADMINISTRADOR" -> {
-                    // Administrador: Revisar su publicación
+
                     Button(
                         onClick = onAbrirRevisionAdmin,
                         modifier = Modifier
@@ -601,9 +567,6 @@ private fun SeccionAccionesPorRol(
     }
 }
 
-/**
- * Diálogo modal para que el Investigador registre correcciones de la ficha museológica.
- */
 @Composable
 private fun DialogoEdicionInvestigador(
     descripcionActual: String,
@@ -675,9 +638,6 @@ private fun DialogoEdicionInvestigador(
     )
 }
 
-/**
- * Diálogo modal para que el Administrador revise y autorice la publicación de la ficha.
- */
 @Composable
 private fun DialogoRevisionAdministrador(
     museo: Museo?,
@@ -731,10 +691,6 @@ private fun DialogoRevisionAdministrador(
     )
 }
 
-/**
- * Diálogo modal a pantalla completa con WebView que permite recorrer el museo en 360°
- * directamente dentro de la aplicación con soporte táctil y de orientación.
- */
 @Composable
 private fun VisorRecorridoVirtualDialog(
     url: String,
@@ -753,7 +709,7 @@ private fun VisorRecorridoVirtualDialog(
             color = FondoOscuro
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Barra superior del visor con botón de cierre
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -791,7 +747,6 @@ private fun VisorRecorridoVirtualDialog(
                     }
                 }
 
-                // WebView con soporte de JavaScript y WebGL para recorridos interactivos
                 AndroidView(
                     factory = { ctx ->
                         WebView(ctx).apply {

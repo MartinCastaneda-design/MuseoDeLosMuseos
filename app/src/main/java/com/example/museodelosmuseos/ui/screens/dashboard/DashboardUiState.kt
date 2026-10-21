@@ -3,7 +3,6 @@ package com.example.museodelosmuseos.ui.screens.dashboard
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
 
-/** Pestañas de la barra de navegación inferior del Dashboard */
 enum class TabDashboard {
     INICIO,
     MAPA,
@@ -12,13 +11,6 @@ enum class TabDashboard {
     PERFIL
 }
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: DashboardUiState
- * ============================================================================
- * Estado inmutable de la pantalla de Dashboard (UDF).
- * ============================================================================
- */
 data class DashboardUiState(
     val sesion: SesionActiva? = null,
     val museosDestacados: List<Museo> = emptyList(),

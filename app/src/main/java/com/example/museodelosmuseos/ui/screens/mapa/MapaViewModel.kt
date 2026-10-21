@@ -10,16 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: MapaViewModel
- * ============================================================================
- * Propósito:
- * Gestiona el mapa interactivo de Iberoamérica con marcadores de museos,
- * consulta la API REST ficticia sincronizando en SQLite, y filtra los marcadores
- * según el país y proyecto seleccionado.
- * ============================================================================
- */
 class MapaViewModel(
     private val repository: MuseoRepository
 ) : ViewModel() {
@@ -54,9 +44,6 @@ class MapaViewModel(
         }
     }
 
-    /**
-     * Consulta la API REST ficticia y actualiza la caché local SQLite en Room
-     */
     fun sincronizarConApiFicticia() {
         viewModelScope.launch {
             _uiState.update { it.copy(sincronizando = true) }
@@ -80,7 +67,7 @@ class MapaViewModel(
             estado.copy(
                 paisSeleccionado = pais,
                 museosFiltrados = filtrados,
-                // Si el museo seleccionado ya no está en el filtro, deseleccionarlo
+
                 museoSeleccionado = if (estado.museoSeleccionado?.pais == pais || pais == "Todos") estado.museoSeleccionado else null
             )
         }

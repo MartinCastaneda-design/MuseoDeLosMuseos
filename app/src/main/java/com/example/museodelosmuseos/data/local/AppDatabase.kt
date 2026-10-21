@@ -20,10 +20,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Base de datos Room del proyecto Museo de los Museos.
- * Maneja usuarios, museos de Iberoamérica, favoritos por perfil, historial de QR y sesión.
- */
 @Database(
     entities = [
         Usuario::class,
@@ -67,7 +63,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                         override fun onOpen(db: SupportSQLiteDatabase) {
                             super.onOpen(db)
-                            // Garantiza que tras una migración o apertura la BD nunca quede vacía
+
                             CoroutineScope(Dispatchers.IO).launch {
                                 val dbInstancia = obtenerInstancia(context)
                                 val adminExiste = dbInstancia.usuarioDao().buscarPorCorreo("admin@museo.org")
@@ -83,10 +79,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * Inserta usuarios y museos de demostración para que la aplicación
-         * esté lista para evaluar desde la primera ejecución.
-         */
         suspend fun precargarDatosIniciales(database: AppDatabase) {
             val usuariosDemo = listOf(
                 Usuario(
@@ -178,7 +170,6 @@ abstract class AppDatabase : RoomDatabase() {
             database.museoDao().insertarSiNoExisten(museosDemo)
             actualizarImagenesSiEsNecesario(database)
 
-            // Iniciar con la sesión demo de María Fernanda (Cliente) activa por defecto
             val usuarioCliente = database.usuarioDao().buscarPorCorreo("maria@email.com")
             if (usuarioCliente != null) {
                 database.sesionDao().guardarSesion(
@@ -193,10 +184,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * Actualiza proactivamente las URLs de imágenes a enlaces directos y estables
-         * para garantizar que siempre se visualicen sin bloqueos de servidor.
-         */
         suspend fun actualizarImagenesSiEsNecesario(database: AppDatabase) {
             val mapaImagenes = mapOf(
                 "MUSEO_COLONIAL_BOGOTA" to "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&auto=format&fit=crop&q=80",

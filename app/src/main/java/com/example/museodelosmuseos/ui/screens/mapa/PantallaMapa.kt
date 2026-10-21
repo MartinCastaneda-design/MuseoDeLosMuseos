@@ -87,27 +87,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
-// Servidor de mapas abierto de Wikimedia (OpenStreetMap) libre de bloqueos 403 y sin necesidad de API Key
 private val TILE_SOURCE_WIKIMEDIA = XYTileSource(
     "Wikimedia",
     1, 19, 256, ".png",
     arrayOf("https://maps.wikimedia.org/osm-intl/")
 )
 
-/**
- * ============================================================================
- * PANTALLA 5: MAPA DE MUSEOS VIRTUALES
- * ============================================================================
- * Cumple con los requerimientos de la pauta:
- * - Roles: Administrador, Investigador y Cliente.
- * - Muestra un mapa interactivo de Iberoamérica con marcadores de museos.
- * - Consulta datos de una API REST ficticia con caché en SQLite (Room).
- * - Filtra por país o proyecto/clasificación.
- * - Al seleccionar un marcador presenta información básica y acceso al detalle.
- * - Diferencia claramente la ubicación geográfica real del museo del enlace
- *   a su visita virtual.
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaMapa(
@@ -119,7 +104,6 @@ fun PantallaMapa(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Mostrar feedback de sincronización con la API REST ficticia
     LaunchedEffect(estado.mensaje) {
         estado.mensaje?.let {
             snackbarHostState.showSnackbar(it)
@@ -179,14 +163,13 @@ fun PantallaMapa(
                 .fillMaxSize()
                 .padding(paddingValores)
         ) {
-            // ---- MAPA INTERACTIVO OSMDROID ----
+
             MapaOsmDroid(
                 museos = estado.museosFiltrados,
                 museoSeleccionado = estado.museoSeleccionado,
                 onSeleccionarMuseo = { viewModel.seleccionarMuseo(it) }
             )
 
-            // ---- BARRA SUPERIOR DE FILTROS (PAÍS Y PROYECTO) ----
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -202,7 +185,7 @@ fun PantallaMapa(
                     )
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                // Filtro 1: Países
+
                 Text(
                     text = "Filtrar por País:",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -232,7 +215,6 @@ fun PantallaMapa(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Filtro 2: Proyecto o Clasificación
                 Text(
                     text = "Filtrar por Clasificación / Proyecto:",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -261,7 +243,6 @@ fun PantallaMapa(
                 }
             }
 
-            // ---- TARJETA INFERIOR FLOTANTE AL SELECCIONAR UN MARCADOR ----
             AnimatedVisibility(
                 visible = estado.museoSeleccionado != null,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -286,9 +267,6 @@ fun PantallaMapa(
     }
 }
 
-/**
- * Componente OSMDroid incrustado mediante AndroidView.
- */
 @Composable
 private fun MapaOsmDroid(
     museos: List<Museo>,
@@ -302,12 +280,11 @@ private fun MapaOsmDroid(
             setTileSource(TILE_SOURCE_WIKIMEDIA)
             setMultiTouchControls(true)
             controller.setZoom(3.5)
-            // Centrado inicial en el océano Atlántico entre Iberoamérica y España
+
             controller.setCenter(GeoPoint(12.0, -45.0))
         }
     }
 
-    // Gestionar pausa y reanudación del MapView con el ciclo de vida de Compose
     DisposableEffect(mapView) {
         mapView.onResume()
         onDispose {
@@ -315,7 +292,6 @@ private fun MapaOsmDroid(
         }
     }
 
-    // Actualizar marcadores reactivamente cuando cambie la lista filtrada
     LaunchedEffect(museos) {
         mapView.overlays.clear()
 
@@ -336,7 +312,6 @@ private fun MapaOsmDroid(
         mapView.invalidate()
     }
 
-    // Si hay un museo seleccionado externamente, centrar el mapa
     LaunchedEffect(museoSeleccionado) {
         museoSeleccionado?.let {
             mapView.controller.animateTo(GeoPoint(it.latitud, it.longitud), 8.0, 800L)
@@ -349,12 +324,6 @@ private fun MapaOsmDroid(
     )
 }
 
-/**
- * Tarjeta interactiva al tocar un marcador.
- * Satisface el requerimiento:
- * "Al seleccionar un marcador presenta información básica y acceso al detalle.
- * Debe diferenciar la ubicación geográfica del museo de su enlace a la visita virtual"
- */
 @Composable
 private fun TarjetaDetalleMarcador(
     museo: Museo,
@@ -375,7 +344,7 @@ private fun TarjetaDetalleMarcador(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Encabezado con nombre y botón cerrar
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -417,8 +386,6 @@ private fun TarjetaDetalleMarcador(
                 }
             }
 
-            // ---- DIFERENCIACIÓN EXPLICITA DE REQUERIMIENTO ----
-            // 1. Ubicación Geográfica Física
             Surface(
                 color = AzulMuseoProfundo,
                 shape = RoundedCornerShape(10.dp),
@@ -445,7 +412,6 @@ private fun TarjetaDetalleMarcador(
                 }
             }
 
-            // 2. Enlace a la Visita Virtual
             Surface(
                 color = AzulMuseoProfundo,
                 shape = RoundedCornerShape(10.dp),
@@ -472,7 +438,6 @@ private fun TarjetaDetalleMarcador(
                 }
             }
 
-            // Botones de acción: Visita Virtual y Acceso al Detalle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)

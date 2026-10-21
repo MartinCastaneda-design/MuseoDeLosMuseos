@@ -5,10 +5,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Entidad Room para el historial de códigos QR escaneados.
- * Se asocia a cada usuario y evita duplicados del mismo código para el mismo usuario.
- */
 @Entity(
     tableName = "historial_qr",
     indices = [
@@ -31,6 +27,6 @@ data class HistorialQr(
     val titulo: String,
     val descripcion: String,
     val urlDestino: String,
-    val tipo: String = "MUSEO", // "MUSEO", "PUBLICACION", "PRODUCTO"
+    val tipo: String = "MUSEO",
     val fechaTimestamp: Long = System.currentTimeMillis()
 )

@@ -82,19 +82,6 @@ import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 import com.example.museodelosmuseos.ui.theme.VerdeExito
 
-/**
- * ============================================================================
- * PANTALLA 3: SELECCIÓN / INICIO DE SESIÓN
- * ============================================================================
- * Roles: Administrador, Investigador y Cliente.
- *
- * Cumple con los criterios de la pauta:
- * - Permite seleccionar el rol e iniciar sesión con credenciales académicas de prueba.
- * - Identifica al usuario activo y habilita sus funciones.
- * - Al cambiar de perfil, actualiza la sesión en Room sin mezclar información.
- * - Validación desacoplada de la UI mediante ViewModel y StateFlow.
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaLogin(
@@ -152,7 +139,7 @@ fun PantallaLogin(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // ---- ENCABEZADO ----
+
                 Box(
                     modifier = Modifier
                         .size(60.dp)
@@ -182,7 +169,6 @@ fun PantallaLogin(
                     textAlign = TextAlign.Center
                 )
 
-                // ---- 1. TARJETAS DE SELECCIÓN DE ROL / DEMO (REQUISITO PAUTA) ----
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -215,7 +201,6 @@ fun PantallaLogin(
                     )
                 }
 
-                // ---- MENSAJE DE ERROR ----
                 if (estado.error != null) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -239,7 +224,6 @@ fun PantallaLogin(
                     }
                 }
 
-                // ---- 2. CAMPOS DE CREDENCIALES ----
                 CampoLoginConIcono(
                     etiqueta = "Correo electrónico",
                     campo = estado.correo,
@@ -289,7 +273,6 @@ fun PantallaLogin(
                     )
                 )
 
-                // ---- BOTÓN DE INICIO DE SESIÓN ----
                 Button(
                     onClick = {
                         viewModel.iniciarSesion(onExito = onLoginExitoso)
@@ -319,7 +302,6 @@ fun PantallaLogin(
                     }
                 }
 
-                // ---- ENLACE A REGISTRO ----
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -352,9 +334,6 @@ fun PantallaLogin(
     }
 }
 
-/**
- * Tarjeta interactiva para seleccionar el rol de usuario o cargar su perfil de prueba.
- */
 @Composable
 private fun TarjetaSeleccionRol(
     rol: Rol,

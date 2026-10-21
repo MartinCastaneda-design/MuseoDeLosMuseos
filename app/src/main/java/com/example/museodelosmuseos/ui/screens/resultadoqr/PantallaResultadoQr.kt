@@ -76,20 +76,6 @@ import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 import com.example.museodelosmuseos.ui.theme.VerdeExito
 
-/**
- * ============================================================================
- * PANTALLA 8: RESULTADO QR
- * ============================================================================
- * Cumple con los requerimientos de la pauta:
- * - Roles: Investigador y Cliente.
- * - Presenta una animación de lectura exitosa.
- * - Identifica el museo, publicación o producto encontrado.
- * - Muestra imagen referencial, descripción breve y botón para abrir su ficha.
- * - Si el código es inválido o desconocido, informa el error y permite volver
- *   a escanear.
- * - Registra la consulta del usuario en el historial local en SQLite (Room).
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaResultadoQr(
@@ -144,14 +130,14 @@ fun PantallaResultadoQr(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // ---- 1. ANIMACIÓN DE LECTURA EXITOSA O ERROR ----
+
                 AnimacionInsigniaResultado(
                     esValido = estado.esValido,
                     animacionVisible = estado.animacionLista
                 )
 
                 if (estado.esValido) {
-                    // ---- 2. CASO EXITOSO: FICHA IDENTIFICADA ----
+
                     TarjetaMuseoIdentificado(
                         museo = estado.museo,
                         titulo = estado.titulo,
@@ -159,7 +145,6 @@ fun PantallaResultadoQr(
                         codigo = estado.codigo
                     )
 
-                    // Botón para abrir la ficha completa
                     Button(
                         onClick = {
                             val id = estado.museoId ?: estado.museo?.id
@@ -185,7 +170,6 @@ fun PantallaResultadoQr(
                         )
                     }
 
-                    // Botón secundario para escanear otro código
                     OutlinedButton(
                         onClick = onVolverAEscanear,
                         modifier = Modifier
@@ -202,7 +186,7 @@ fun PantallaResultadoQr(
                         Text("Escanear Otro Código", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 } else {
-                    // ---- 3. CASO INVÁLIDO O DESCONOCIDO ----
+
                     TarjetaErrorCodigo(
                         codigo = estado.codigo,
                         mensaje = estado.descripcion
@@ -234,9 +218,6 @@ fun PantallaResultadoQr(
     }
 }
 
-/**
- * 1. Insignia animada que enfatiza la lectura exitosa (Check verde/dorado) o error.
- */
 @Composable
 private fun AnimacionInsigniaResultado(
     esValido: Boolean,
@@ -275,9 +256,6 @@ private fun AnimacionInsigniaResultado(
     }
 }
 
-/**
- * 2. Tarjeta con imagen referencial, clasificación, datos y descripción breve.
- */
 @Composable
 private fun TarjetaMuseoIdentificado(
     museo: Museo?,
@@ -294,7 +272,7 @@ private fun TarjetaMuseoIdentificado(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Imagen referencial con Coil
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -322,7 +300,6 @@ private fun TarjetaMuseoIdentificado(
                     )
                 }
 
-                // Badge de código QR en la esquina
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -343,7 +320,6 @@ private fun TarjetaMuseoIdentificado(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Título del museo
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -352,7 +328,6 @@ private fun TarjetaMuseoIdentificado(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // Ciudad y País
             if (museo != null) {
                 Row(
                     modifier = Modifier.padding(top = 4.dp),
@@ -370,7 +345,6 @@ private fun TarjetaMuseoIdentificado(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Descripción breve
             Text(
                 text = descripcion,
                 style = MaterialTheme.typography.bodyMedium,
@@ -392,9 +366,6 @@ private fun TarjetaMuseoIdentificado(
     }
 }
 
-/**
- * 3. Tarjeta informativa para código QR no reconocido.
- */
 @Composable
 private fun TarjetaErrorCodigo(
     codigo: String,

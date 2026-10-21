@@ -9,16 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: DashboardViewModel
- * ============================================================================
- * Propósito:
- * Gestiona el estado reactivo del Dashboard (Pantalla 4), observando la sesión
- * del usuario autenticado en Room y cargando los museos para secciones
- * destacadas y catálogo.
- * ============================================================================
- */
 class DashboardViewModel(
     private val repository: MuseoRepository
 ) : ViewModel() {

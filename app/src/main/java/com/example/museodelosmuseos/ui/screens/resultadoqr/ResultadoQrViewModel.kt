@@ -11,16 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: ResultadoQrViewModel
- * ============================================================================
- * Propósito:
- * Gestiona la presentación del resultado de la lectura QR.
- * Carga la información completa del museo identificado desde Room,
- * activa la animación de éxito y asegura que la consulta quede en el historial.
- * ============================================================================
- */
 class ResultadoQrViewModel(
     private val repository: MuseoRepository,
     private val datosResultado: DestinoPantalla.ResultadoQr
@@ -58,7 +48,6 @@ class ResultadoQrViewModel(
             }
         }
 
-        // Registrar en historial si es válido y aún no se guardó
         viewModelScope.launch {
             val sesion = repository.obtenerSesion()
             val usuarioId = sesion?.usuarioId ?: 1L
@@ -73,7 +62,6 @@ class ResultadoQrViewModel(
             }
         }
 
-        // Disparar animación de lectura exitosa
         viewModelScope.launch {
             delay(150)
             _uiState.update { it.copy(animacionLista = true) }

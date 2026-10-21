@@ -1,13 +1,5 @@
 package com.example.museodelosmuseos.ui.screens.registro
 
-/**
- * ============================================================================
- * MODELO ATÓMICO: CampoFormulario
- * ============================================================================
- * Idéntico al estándar de '102 Fuente Ejemplo Formularios' del profesor.
- * Combina el texto ingresado con el mensaje de fallo correspondiente.
- * ============================================================================
- */
 data class CampoFormulario(
     val valor: String = "",
     val error: String? = null
@@ -15,9 +7,6 @@ data class CampoFormulario(
     val esValido: Boolean get() = error == null && valor.isNotBlank()
 }
 
-/**
- * Estado reactivo completo de la pantalla de registro (Single Source of Truth).
- */
 data class RegistroUiState(
     val nombre: CampoFormulario = CampoFormulario(),
     val correo: CampoFormulario = CampoFormulario(),

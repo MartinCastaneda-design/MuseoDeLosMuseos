@@ -3,24 +3,10 @@ package com.example.museodelosmuseos.data.remote
 import com.example.museodelosmuseos.data.local.entity.Museo
 import kotlinx.coroutines.delay
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: MuseoApiService (API REST Ficticia)
- * ============================================================================
- * Cumple con el criterio de la pauta:
- * "Consulta datos de una API REST ficticia... puede usar SQLite como caché"
- *
- * Simula llamadas HTTP de red hacia un backend REST institucional con
- * latencia realista, retornando el catálogo de museos iberoamericanos.
- * ============================================================================
- */
 class MuseoApiService {
 
-    /**
-     * Simula la petición HTTP: GET /api/v1/museos/iberoamerica
-     */
     suspend fun obtenerMuseosIberoamerica(): List<Museo> {
-        // Simular latencia de red de una petición REST
+
         delay(600)
 
         return listOf(

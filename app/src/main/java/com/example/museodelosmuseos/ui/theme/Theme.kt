@@ -42,7 +42,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MuseoDeLosMuseosTheme(
-    darkTheme: Boolean = true, // Estilo patrimonial nocturno por defecto como en el diseño de referencia
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

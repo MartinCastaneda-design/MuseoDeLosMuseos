@@ -4,10 +4,6 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Entidad Room para representar los Museos Virtuales de Iberoamérica.
- * Incluye coordenadas para OSMDroid y URL para la visita virtual.
- */
 @Entity(
     tableName = "museos",
     indices = [Index(value = ["codigoQr"], unique = true)]
@@ -19,11 +15,11 @@ data class Museo(
     val pais: String,
     val ciudad: String,
     val descripcion: String,
-    val clasificacion: String, // Ej: "Historia", "Arte Colonial", "Bellas Artes"
-    val latitud: Double,       // Coordenada para OSMDroid
-    val longitud: Double,      // Coordenada para OSMDroid
+    val clasificacion: String,
+    val latitud: Double,
+    val longitud: Double,
     val urlVisitaVirtual: String,
-    val codigoQr: String,      // Código que reconoce el escáner QR
+    val codigoQr: String,
     val imagenUrl: String = "",
     val proyecto: String = "Red de Museos Virtuales"
 )

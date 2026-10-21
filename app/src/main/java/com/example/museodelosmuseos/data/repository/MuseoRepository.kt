@@ -9,11 +9,6 @@ import com.example.museodelosmuseos.data.local.entity.Usuario
 import com.example.museodelosmuseos.data.remote.MuseoApiService
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Repositorio central que desacopla los ViewModels de la base de datos Room.
- * Proporciona operaciones seguras para autenticación, museos, favoritos e historial QR.
- * Implementa caché local en SQLite respaldada por una API REST ficticia.
- */
 class MuseoRepository(
     private val database: AppDatabase,
     private val apiService: MuseoApiService = MuseoApiService()
@@ -25,7 +20,6 @@ class MuseoRepository(
     private val historialQrDao = database.historialQrDao()
     private val sesionDao = database.sesionDao()
 
-    // --- SESIÓN Y USUARIOS ---
     fun observarSesion(): Flow<SesionActiva?> = sesionDao.observarSesion()
 
     suspend fun obtenerSesion(): SesionActiva? = sesionDao.obtenerSesion()
@@ -73,7 +67,7 @@ class MuseoRepository(
             avatar = avatar
         )
         val id = usuarioDao.registrar(nuevo)
-        // Autologuear al usuario registrado
+
         sesionDao.guardarSesion(
             SesionActiva(
                 usuarioId = id,
@@ -90,7 +84,6 @@ class MuseoRepository(
         sesionDao.cerrarSesion()
     }
 
-    // --- MUSEOS Y MAPAS ---
     fun observarMuseos(): Flow<List<Museo>> = museoDao.observarTodos()
 
     fun observarMuseo(id: Long): Flow<Museo?> = museoDao.observarPorId(id)
@@ -105,11 +98,6 @@ class MuseoRepository(
 
     suspend fun guardarMuseo(museo: Museo): Long = museoDao.insertar(museo)
 
-    /**
-     * Consulta la API REST ficticia y actualiza la caché local en SQLite (Room).
-     * Satisface el requerimiento de la pauta:
-     * "Consulta datos de una API REST ficticia... puede usar SQLite como caché"
-     */
     suspend fun sincronizarMuseosRemotos(): Result<Int> {
         return try {
             val museosRemotos = apiService.obtenerMuseosIberoamerica()
@@ -120,7 +108,6 @@ class MuseoRepository(
         }
     }
 
-    // --- FAVORITOS (POR USUARIO) ---
     fun esFavorito(usuarioId: Long, museoId: Long): Flow<Boolean> =
         favoritoDao.esFavorito(usuarioId, museoId)
 
@@ -135,7 +122,6 @@ class MuseoRepository(
     fun observarFavoritos(usuarioId: Long): Flow<List<Museo>> =
         favoritoDao.observarMuseosFavoritos(usuarioId)
 
-    // --- HISTORIAL QR (POR USUARIO) ---
     fun observarHistorialQr(usuarioId: Long): Flow<List<HistorialQr>> =
         historialQrDao.observarHistorial(usuarioId)
 

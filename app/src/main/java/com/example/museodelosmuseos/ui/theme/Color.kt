@@ -2,7 +2,6 @@ package com.example.museodelosmuseos.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta institucional "Museo de los Museos"
 val AzulMuseoProfundo = Color(0xFF0F2027)
 val AzulMuseoMedio = Color(0xFF203A43)
 val AzulMuseoSuperficie = Color(0xFF2C5364)

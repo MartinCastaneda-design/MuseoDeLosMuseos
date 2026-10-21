@@ -13,29 +13,21 @@ import okhttp3.OkHttpClient
 import org.osmdroid.config.Configuration
 import java.io.File
 
-/**
- * Clase Application personalizada para inicializar dependencias globales
- * de OSMDroid, Coil ImageLoader y Room a nivel de proceso antes de que se instancie cualquier vista.
- */
 class MuseoApplication : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
 
-        // Configuración requerida de OSMDroid con User Agent único y rutas de caché válidas
         val config = Configuration.getInstance()
         config.load(this, getSharedPreferences("osmdroid_prefs", MODE_PRIVATE))
-        
-        // Formato estricto requerido por la política de OpenStreetMap:
+
         config.userAgentValue = "MuseoPatrimonialApp/2.0 (DuocUC; DSY1105; eval-academica)"
-        
-        // Directorio de caché local seguro dentro del almacenamiento interno de la app
+
         val osmdroidBasePath = File(filesDir, "osmdroid")
         val osmdroidTileCache = File(osmdroidBasePath, "tiles")
         config.osmdroidBasePath = osmdroidBasePath
         config.osmdroidTileCache = osmdroidTileCache
 
-        // Inicializar Room proactivamente y actualizar URLs de imágenes a enlaces directos y estables
         CoroutineScope(Dispatchers.IO).launch {
             val db = AppDatabase.obtenerInstancia(this@MuseoApplication)
             if (db.usuarioDao().buscarPorCorreo("admin@museo.org") == null) {
@@ -70,7 +62,7 @@ class MuseoApplication : Application(), ImageLoaderFactory {
             .diskCache {
                 DiskCache.Builder()
                     .directory(cacheDir.resolve("image_cache"))
-                    .maxSizeBytes(50L * 1024 * 1024) // 50MB
+                    .maxSizeBytes(50L * 1024 * 1024)
                     .build()
             }
             .build()

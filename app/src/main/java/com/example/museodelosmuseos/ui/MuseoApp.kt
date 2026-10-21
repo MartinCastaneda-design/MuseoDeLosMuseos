@@ -26,19 +26,10 @@ import com.example.museodelosmuseos.ui.screens.registro.RegistroViewModel
 import com.example.museodelosmuseos.ui.screens.resultadoqr.PantallaResultadoQr
 import com.example.museodelosmuseos.ui.screens.resultadoqr.ResultadoQrViewModel
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: MuseoApp (Vista Raíz)
- * ============================================================================
- * Coordina la navegación reactiva entre las pantallas del proyecto
- * y provee el repositorio central de datos a los ViewModels.
- * ============================================================================
- */
 @Composable
 fun MuseoApp() {
     val context = LocalContext.current
 
-    // Instancia única del repositorio para toda la jerarquía de vistas
     val database = remember { AppDatabase.obtenerInstancia(context) }
     val repository = remember { MuseoRepository(database) }
     val registroViewModel = remember(repository) { RegistroViewModel(repository) }
@@ -47,10 +38,8 @@ fun MuseoApp() {
     val mapaViewModel = remember(repository) { MapaViewModel(repository) }
     val escanerViewModel = remember(repository) { EscanerQrViewModel(repository) }
 
-    // Estado reactivo de navegación (Single Source of Truth para la vista activa)
     var destinoActual by remember { mutableStateOf<DestinoPantalla>(DestinoPantalla.Bienvenida) }
 
-    // Pila simple de retorno hacia atrás
     val volverABienvenida = { destinoActual = DestinoPantalla.Bienvenida }
 
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
@@ -63,20 +52,19 @@ fun MuseoApp() {
         }
     }
 
-    // Conmutador reactivo de pantallas (UDF)
     when (val destino = destinoActual) {
         is DestinoPantalla.Bienvenida -> {
             PantallaBienvenida(
                 onComenzarClick = {
-                    // Lleva al registro o selección de rol
+
                     destinoActual = DestinoPantalla.Registro
                 },
                 onIniciarSesionClick = {
-                    // Lleva al login
+
                     destinoActual = DestinoPantalla.Login
                 },
                 onExplorarMapaClick = {
-                    // Acceso directo al mapa interactivo
+
                     destinoActual = DestinoPantalla.Mapa
                 }
             )

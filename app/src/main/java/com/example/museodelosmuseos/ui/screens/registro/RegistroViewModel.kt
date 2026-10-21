@@ -9,29 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: RegistroViewModel
- * ============================================================================
- * Propósito:
- * Gestiona el estado reactivo, la lógica de validación centralizada y la
- * persistencia local en Room para el registro de nuevos usuarios de rol Cliente.
- *
- * Patrones implementados (según el estándar del profesor):
- * - MVVM: Desacopla la lógica de negocio y validación de la interfaz gráfica.
- * - Encapsulación: Backing Property (_uiState privado, uiState público inmutable).
- * - Single Source of Truth: Emite estados reactivos con StateFlow.
- * ============================================================================
- */
 class RegistroViewModel(
     private val repository: MuseoRepository
 ) : ViewModel() {
 
-    // --- ESTADO REACTIVO PRINCIPAL ---
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = _uiState.asStateFlow()
-
-    // --- EVENTOS DE ENTRADA (Intents) ---
 
     fun cambiarNombre(valor: String) {
         _uiState.update {
@@ -64,13 +47,9 @@ class RegistroViewModel(
         _uiState.update { it.copy(avatarSeleccionado = avatar) }
     }
 
-    /**
-     * Valida todos los campos y persiste en Room si los datos son correctos.
-     */
     fun registrar(onExito: () -> Unit) {
         val actual = _uiState.value
 
-        // Barrido completo de validaciones para asegurar coherencia
         val nombreVal = actual.nombre.copy(error = validarNombre(actual.nombre.valor))
         val correoVal = actual.correo.copy(error = validarCorreo(actual.correo.valor))
         val passVal = actual.contrasena.copy(error = validarContrasena(actual.contrasena.valor))
@@ -87,7 +66,6 @@ class RegistroViewModel(
             return
         }
 
-        // Persistir en SQLite / Room usando el repositorio
         _uiState.update { it.copy(guardando = true, errorServidor = null) }
         viewModelScope.launch {
             val resultado = repository.registrarUsuario(
@@ -113,8 +91,6 @@ class RegistroViewModel(
             )
         }
     }
-
-    // --- REGLAS DE NEGOCIO PRIVADAS (Validaciones centralizadas) ---
 
     private fun validarNombre(valor: String): String? = when {
         valor.isBlank() -> "El nombre completo es obligatorio"

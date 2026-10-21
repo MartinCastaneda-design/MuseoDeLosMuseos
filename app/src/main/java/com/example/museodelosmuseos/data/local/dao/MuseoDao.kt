@@ -33,8 +33,8 @@ interface MuseoDao {
     suspend fun obtenerPorId(id: Long): Museo?
 
     @Query("""
-        SELECT * FROM museos 
-        WHERE UPPER(codigoQr) = UPPER(:codigoQr) 
+        SELECT * FROM museos
+        WHERE UPPER(codigoQr) = UPPER(:codigoQr)
            OR UPPER(urlVisitaVirtual) = UPPER(:codigoQr)
            OR :codigoQr LIKE '%' || codigoQr || '%'
         LIMIT 1
