@@ -16,6 +16,8 @@ import com.example.museodelosmuseos.ui.screens.detallearticulo.DetalleArticuloVi
 import com.example.museodelosmuseos.ui.screens.detallearticulo.PantallaDetalleArticulo
 import com.example.museodelosmuseos.ui.screens.carrito.CarritoViewModel
 import com.example.museodelosmuseos.ui.screens.carrito.PantallaCarrito
+import com.example.museodelosmuseos.ui.screens.solicitudes.SolicitudesViewModel
+import com.example.museodelosmuseos.ui.screens.solicitudes.PantallaSolicitudes
 import com.example.museodelosmuseos.ui.screens.catalogo.CatalogoViewModel
 import com.example.museodelosmuseos.ui.screens.catalogo.PantallaCatalogo
 import com.example.museodelosmuseos.data.local.AppDatabase
@@ -68,6 +70,9 @@ fun MuseoApp() {
 
     val esCliente = dashboardState.sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true
     LaunchedEffect(destinoActual, dashboardState.puedeAccederCatalogo, esCliente) {
+        if (destinoActual is DestinoPantalla.Solicitudes && !dashboardState.puedeAccederCatalogo) {
+            destinoActual = DestinoPantalla.Dashboard
+        }
         if (destinoActual == DestinoPantalla.Catalogo && !dashboardState.puedeAccederCatalogo) {
             destinoActual = DestinoPantalla.Dashboard
         }
@@ -78,6 +83,7 @@ fun MuseoApp() {
 
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
         when (val actual = destinoActual) {
+            is DestinoPantalla.Solicitudes -> destinoActual = if (esCliente) actual.origenCarrito ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
             is DestinoPantalla.Carrito -> destinoActual = actual.origenArticuloId?.let { DestinoPantalla.DetalleArticulo(it) } ?: DestinoPantalla.Catalogo
             is DestinoPantalla.DetalleArticulo -> destinoActual = DestinoPantalla.Catalogo
             is DestinoPantalla.ResultadoQr -> destinoActual = DestinoPantalla.EscanerQr
@@ -147,6 +153,9 @@ fun MuseoApp() {
                     destinoActual = DestinoPantalla.EscanerQr
                 },
                 onCerrarSesion = volverABienvenida,
+                onNavegarASolicitudes = {
+                    if (dashboardViewModel.uiState.value.puedeAccederCatalogo) destinoActual = DestinoPantalla.Solicitudes()
+                },
                 onNavegarACatalogo = {
                     if (dashboardViewModel.uiState.value.puedeAccederCatalogo) {
                         destinoActual = DestinoPantalla.Catalogo
@@ -194,8 +203,19 @@ fun MuseoApp() {
             if (esCliente && usuarioId != null) {
                 val carritoViewModel: CarritoViewModel = viewModel(key = "carrito-$usuarioId",
                     factory = viewModelFactory { initializer { CarritoViewModel(repository, usuarioId) } })
-                PantallaCarrito(carritoViewModel, onVolver = {
+                PantallaCarrito(carritoViewModel, onNavegarASolicitudes = { destinoActual = DestinoPantalla.Solicitudes(destino) }, onVolver = {
                     destinoActual = destino.origenArticuloId?.let { DestinoPantalla.DetalleArticulo(it) } ?: DestinoPantalla.Catalogo
+                })
+            }
+        }
+
+        is DestinoPantalla.Solicitudes -> {
+            val actorId = dashboardState.sesion?.usuarioId
+            if (dashboardState.puedeAccederCatalogo && actorId != null) {
+                val solicitudesViewModel: SolicitudesViewModel = viewModel(key = "solicitudes-$actorId",
+                    factory = viewModelFactory { initializer { SolicitudesViewModel(repository, actorId) } })
+                PantallaSolicitudes(solicitudesViewModel, onVolver = {
+                    destinoActual = if (esCliente) destino.origenCarrito ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
                 })
             }
         }

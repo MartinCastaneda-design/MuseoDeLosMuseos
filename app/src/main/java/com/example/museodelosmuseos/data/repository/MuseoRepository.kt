@@ -9,6 +9,7 @@ import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.data.local.entity.Usuario
 import com.example.museodelosmuseos.data.remote.MuseoApiService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import com.example.museodelosmuseos.data.model.*
 import com.example.museodelosmuseos.data.local.entity.PedidoLocal
 import com.example.museodelosmuseos.data.local.entity.PedidoLinea
@@ -35,6 +36,25 @@ class MuseoRepository(
     private val sesionDao = database.sesionDao()
     private val articuloCatalogoDao = database.articuloCatalogoDao()
     private val compraDao = database.compraDao()
+
+    fun observarHistorialSolicitudes(actorId: Long): Flow<List<SolicitudHistorial>> = combine(
+        compraDao.observarHistorialPedidos(actorId), compraDao.observarHistorialConsultas(actorId)
+    ) { pedidos, consultas ->
+        (pedidos.map { SolicitudHistorial(pedido = it.pedido, lineas = it.lineas.sortedBy { l -> l.articuloId }) } +
+            consultas.map { SolicitudHistorial(consulta = it.consulta, tituloCurso = it.articulo?.titulo) })
+            .sortedByDescending { it.fecha }
+    }
+
+    suspend fun cambiarEstadoSolicitud(actorId: Long, solicitud: SolicitudHistorial, nuevo: EstadoSolicitud) = database.withTransaction {
+        PermisosSolicitudes.validarCambio(sesionDao.obtenerSesion(), actorId, solicitud.estado, nuevo)?.let { error(it) }
+        val actual = solicitud.pedido?.let { compraDao.obtenerPedido(it.id)?.estado }
+            ?: solicitud.consulta?.let { compraDao.obtenerSolicitud(it.usuarioId, it.articuloId)?.estado }
+            ?: error("La solicitud ya no existe.")
+        check(actual == solicitud.estado) { "El estado cambió. Revisa la solicitud actualizada antes de guardar." }
+        val filas = solicitud.pedido?.let { compraDao.actualizarEstadoPedido(it.id, actual, nuevo.valor) }
+            ?: solicitud.consulta!!.let { compraDao.actualizarEstadoConsulta(it.usuarioId, it.articuloId, actual, nuevo.valor) }
+        check(filas == 1) { "No fue posible actualizar la solicitud." }
+    }
 
     fun observarLineasCarrito(usuarioId: Long) = compraDao.observarLineas(usuarioId)
     fun observarPedidos(usuarioId: Long) = compraDao.observarPedidos(usuarioId)

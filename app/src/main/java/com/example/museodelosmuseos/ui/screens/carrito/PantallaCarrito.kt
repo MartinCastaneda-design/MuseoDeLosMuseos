@@ -29,12 +29,13 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaCarrito(viewModel: CarritoViewModel, onVolver: () -> Unit) {
+fun PantallaCarrito(viewModel: CarritoViewModel, onVolver: () -> Unit, onNavegarASolicitudes: () -> Unit = {}) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val moneda = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-CL"))
     Scaffold(containerColor = FondoOscuro, topBar = {
         CenterAlignedTopAppBar(title = { Text("Carrito y envío", color = DoradoPatrimonial) },
             navigationIcon = { IconButton(onClick = onVolver) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = DoradoPatrimonial) } },
+            actions = { IconButton(onClick = onNavegarASolicitudes) { Icon(Icons.Filled.History, "Historial de solicitudes", tint = DoradoPatrimonial) } },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = AzulMuseoProfundo))
     }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding).imePadding(), contentPadding = PaddingValues(16.dp),

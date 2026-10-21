@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -110,7 +111,8 @@ fun PantallaDashboard(
     onNavegarADetalle: (Long) -> Unit,
     onNavegarAEscanerQr: () -> Unit,
     onCerrarSesion: () -> Unit,
-    onNavegarACatalogo: () -> Unit
+    onNavegarACatalogo: () -> Unit,
+    onNavegarASolicitudes: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -157,6 +159,9 @@ fun PantallaDashboard(
                     }
                 },
                 actions = {
+                    if (estado.puedeAccederCatalogo) IconButton(onClick = onNavegarASolicitudes) {
+                        Icon(Icons.Filled.History, "Historial de solicitudes", tint = DoradoPatrimonial)
+                    }
                     IconButton(onClick = { viewModel.cerrarSesion(onCerrarSesion) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
