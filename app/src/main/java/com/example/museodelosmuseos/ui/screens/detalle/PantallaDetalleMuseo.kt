@@ -112,7 +112,8 @@ import com.example.museodelosmuseos.ui.theme.VerdeExito
 @Composable
 fun PantallaDetalleMuseo(
     viewModel: DetalleMuseoViewModel,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onAbrirFavoritos: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -152,6 +153,7 @@ fun PantallaDetalleMuseo(
                     }
                 },
                 actions = {
+                    if (rol == "CLIENTE") TextButton(onClick = onAbrirFavoritos) { Text("Mis favoritos", color = DoradoPatrimonial) }
                     // Si el usuario es Cliente, acceso directo al botón de favoritos
                     if (rol == "CLIENTE") {
                         IconButton(onClick = { viewModel.alternarFavorito() }) {

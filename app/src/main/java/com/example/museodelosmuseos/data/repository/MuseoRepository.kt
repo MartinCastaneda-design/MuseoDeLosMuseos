@@ -220,8 +220,10 @@ class MuseoRepository(
     fun esFavorito(usuarioId: Long, museoId: Long): Flow<Boolean> =
         favoritoDao.esFavorito(usuarioId, museoId)
 
-    suspend fun conmutarFavorito(usuarioId: Long, museoId: Long, marcar: Boolean) {
+    suspend fun conmutarFavorito(usuarioId: Long, museoId: Long, marcar: Boolean): Unit = database.withTransaction {
+        ReglasFavoritos.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
         if (marcar) {
+            check(museoDao.obtenerPorId(museoId) != null) { "El museo ya no está disponible." }
             favoritoDao.agregarFavorito(FavoritoMuseo(usuarioId = usuarioId, museoId = museoId))
         } else {
             favoritoDao.quitarFavorito(usuarioId, museoId)

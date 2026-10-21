@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -112,7 +113,8 @@ fun PantallaDashboard(
     onNavegarAEscanerQr: () -> Unit,
     onCerrarSesion: () -> Unit,
     onNavegarACatalogo: () -> Unit,
-    onNavegarASolicitudes: () -> Unit = {}
+    onNavegarASolicitudes: () -> Unit = {},
+    onNavegarAFavoritos: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -159,6 +161,9 @@ fun PantallaDashboard(
                     }
                 },
                 actions = {
+                    if (estado.sesion?.rol?.equals("CLIENTE", true) == true) IconButton(onClick = onNavegarAFavoritos) {
+                        Icon(Icons.Filled.Favorite, "Mis museos favoritos", tint = DoradoPatrimonial)
+                    }
                     if (estado.puedeAccederCatalogo) IconButton(onClick = onNavegarASolicitudes) {
                         Icon(Icons.Filled.History, "Historial de solicitudes", tint = DoradoPatrimonial)
                     }

@@ -18,6 +18,8 @@ import com.example.museodelosmuseos.ui.screens.carrito.CarritoViewModel
 import com.example.museodelosmuseos.ui.screens.carrito.PantallaCarrito
 import com.example.museodelosmuseos.ui.screens.solicitudes.SolicitudesViewModel
 import com.example.museodelosmuseos.ui.screens.solicitudes.PantallaSolicitudes
+import com.example.museodelosmuseos.ui.screens.favoritos.FavoritosViewModel
+import com.example.museodelosmuseos.ui.screens.favoritos.PantallaFavoritos
 import com.example.museodelosmuseos.ui.screens.catalogo.CatalogoViewModel
 import com.example.museodelosmuseos.ui.screens.catalogo.PantallaCatalogo
 import com.example.museodelosmuseos.data.local.AppDatabase
@@ -70,6 +72,7 @@ fun MuseoApp() {
 
     val esCliente = dashboardState.sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true
     LaunchedEffect(destinoActual, dashboardState.puedeAccederCatalogo, esCliente) {
+        if (destinoActual is DestinoPantalla.Favoritos && !esCliente) destinoActual = DestinoPantalla.Dashboard
         if (destinoActual is DestinoPantalla.Solicitudes && !dashboardState.puedeAccederCatalogo) {
             destinoActual = DestinoPantalla.Dashboard
         }
@@ -83,12 +86,13 @@ fun MuseoApp() {
 
     BackHandler(enabled = destinoActual != DestinoPantalla.Bienvenida) {
         when (val actual = destinoActual) {
+            is DestinoPantalla.Favoritos -> destinoActual = actual.origenMuseoId?.let { DestinoPantalla.DetalleMuseo(it) } ?: DestinoPantalla.Dashboard
+            is DestinoPantalla.DetalleMuseo -> destinoActual = if (esCliente) actual.origenFavoritos ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
             is DestinoPantalla.Solicitudes -> destinoActual = if (esCliente) actual.origenCarrito ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
             is DestinoPantalla.Carrito -> destinoActual = actual.origenArticuloId?.let { DestinoPantalla.DetalleArticulo(it) } ?: DestinoPantalla.Catalogo
             is DestinoPantalla.DetalleArticulo -> destinoActual = DestinoPantalla.Catalogo
             is DestinoPantalla.ResultadoQr -> destinoActual = DestinoPantalla.EscanerQr
             is DestinoPantalla.Mapa,
-            is DestinoPantalla.DetalleMuseo,
             is DestinoPantalla.Catalogo,
             is DestinoPantalla.EscanerQr -> destinoActual = DestinoPantalla.Dashboard
             else -> volverABienvenida()
@@ -153,6 +157,9 @@ fun MuseoApp() {
                     destinoActual = DestinoPantalla.EscanerQr
                 },
                 onCerrarSesion = volverABienvenida,
+                onNavegarAFavoritos = {
+                    if (dashboardViewModel.uiState.value.sesion?.rol?.equals("CLIENTE", true) == true) destinoActual = DestinoPantalla.Favoritos()
+                },
                 onNavegarASolicitudes = {
                     if (dashboardViewModel.uiState.value.puedeAccederCatalogo) destinoActual = DestinoPantalla.Solicitudes()
                 },
@@ -220,6 +227,18 @@ fun MuseoApp() {
             }
         }
 
+        is DestinoPantalla.Favoritos -> {
+            val usuarioId = dashboardState.sesion?.usuarioId
+            if (esCliente && usuarioId != null) {
+                val favoritosViewModel: FavoritosViewModel = viewModel(key = "favoritos-$usuarioId",
+                    factory = viewModelFactory { initializer { FavoritosViewModel(repository, usuarioId) } })
+                PantallaFavoritos(favoritosViewModel,
+                    onVolver = { destinoActual = destino.origenMuseoId?.let { DestinoPantalla.DetalleMuseo(it) } ?: DestinoPantalla.Dashboard },
+                    onAbrirMuseo = { destinoActual = DestinoPantalla.DetalleMuseo(it, destino) },
+                    onExplorar = { destinoActual = DestinoPantalla.Mapa })
+            }
+        }
+
         is DestinoPantalla.Mapa -> {
             PantallaMapa(
                 viewModel = mapaViewModel,
@@ -238,8 +257,11 @@ fun MuseoApp() {
             }
             PantallaDetalleMuseo(
                 viewModel = detalleViewModel,
+                onAbrirFavoritos = {
+                    if (esCliente) destinoActual = destino.origenFavoritos ?: DestinoPantalla.Favoritos(destino.museoId)
+                },
                 onVolver = {
-                    destinoActual = DestinoPantalla.Dashboard
+                    destinoActual = if (esCliente) destino.origenFavoritos ?: DestinoPantalla.Dashboard else DestinoPantalla.Dashboard
                 }
             )
         }

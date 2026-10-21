@@ -10,7 +10,8 @@ sealed interface DestinoPantalla {
     data object Login : DestinoPantalla
     data object Dashboard : DestinoPantalla
     data object Mapa : DestinoPantalla
-    data class DetalleMuseo(val museoId: Long) : DestinoPantalla
+    data class DetalleMuseo(val museoId: Long, val origenFavoritos: Favoritos? = null) : DestinoPantalla
+    data class Favoritos(val origenMuseoId: Long? = null) : DestinoPantalla
     data object EscanerQr : DestinoPantalla
     data class ResultadoQr(
         val codigo: String,

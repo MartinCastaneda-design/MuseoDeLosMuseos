@@ -17,13 +17,14 @@ interface FavoritoDao {
     @Query("DELETE FROM favoritos_museo WHERE usuarioId = :usuarioId AND museoId = :museoId")
     suspend fun quitarFavorito(usuarioId: Long, museoId: Long)
 
-    @Query("SELECT EXISTS(SELECT 1 FROM favoritos_museo WHERE usuarioId = :usuarioId AND museoId = :museoId)")
+    @Query("SELECT EXISTS(SELECT 1 FROM favoritos_museo f INNER JOIN sesion_activa s ON s.usuarioId = f.usuarioId WHERE f.usuarioId = :usuarioId AND f.museoId = :museoId AND UPPER(s.rol) = 'CLIENTE')")
     fun esFavorito(usuarioId: Long, museoId: Long): Flow<Boolean>
 
     @Query("""
         SELECT m.* FROM museos m
         INNER JOIN favoritos_museo f ON m.id = f.museoId
-        WHERE f.usuarioId = :usuarioId
+        INNER JOIN sesion_activa s ON s.usuarioId = f.usuarioId
+        WHERE f.usuarioId = :usuarioId AND UPPER(s.rol) = 'CLIENTE'
         ORDER BY m.nombre ASC
     """)
     fun observarMuseosFavoritos(usuarioId: Long): Flow<List<Museo>>
