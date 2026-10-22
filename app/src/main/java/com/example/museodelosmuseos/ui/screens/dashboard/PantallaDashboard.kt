@@ -33,6 +33,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -60,8 +62,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.museodelosmuseos.ui.components.ImagenMuseo
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.ui.theme.AzulCard
@@ -95,7 +96,12 @@ fun PantallaDashboard(
     onNavegarAMapa: () -> Unit,
     onNavegarADetalle: (Long) -> Unit,
     onNavegarAEscanerQr: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    onNavegarACatalogo: () -> Unit,
+    onNavegarASolicitudes: () -> Unit = {},
+    onNavegarAFavoritos: () -> Unit = {},
+    onNavegarAAvisos: () -> Unit = {},
+    onNavegarAPerfil: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -142,6 +148,12 @@ fun PantallaDashboard(
                     }
                 },
                 actions = {
+                    if (estado.sesion?.rol?.equals("CLIENTE", true) == true) IconButton(onClick = onNavegarAFavoritos) {
+                        Icon(Icons.Filled.Favorite, "Mis museos favoritos", tint = DoradoPatrimonial)
+                    }
+                    if (estado.puedeAccederCatalogo) IconButton(onClick = onNavegarASolicitudes) {
+                        Icon(Icons.Filled.History, "Historial de solicitudes", tint = DoradoPatrimonial)
+                    }
                     IconButton(onClick = { viewModel.cerrarSesion(onCerrarSesion) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
@@ -158,9 +170,17 @@ fun PantallaDashboard(
         bottomBar = {
             BarraNavegacionInferior(
                 tabSeleccionada = estado.tabSeleccionada,
+                puedeAccederCatalogo = estado.puedeAccederCatalogo,
+                avisosNoLeidos = estado.avisosNoLeidos,
                 onTabSeleccionada = { tab ->
                     if (tab == TabDashboard.MAPA) {
                         onNavegarAMapa()
+                    } else if (tab == TabDashboard.PERFIL) {
+                        onNavegarAPerfil()
+                    } else if (tab == TabDashboard.NOTIFICACIONES) {
+                        onNavegarAAvisos()
+                    } else if (tab == TabDashboard.CATALOGO) {
+                        if (estado.puedeAccederCatalogo) onNavegarACatalogo()
                     } else {
                         viewModel.seleccionarTab(tab)
                     }
@@ -190,7 +210,9 @@ fun PantallaDashboard(
                             onNavegarAMapa = onNavegarAMapa,
                             onNavegarADetalle = onNavegarADetalle,
                             onNavegarAEscanerQr = onNavegarAEscanerQr,
-                            onVerCatalogo = { viewModel.seleccionarTab(TabDashboard.CATALOGO) }
+                            onVerCatalogo = {
+                                if (estado.puedeAccederCatalogo) onNavegarACatalogo()
+                            }
                         )
                     }
                     TabDashboard.MAPA -> {
@@ -203,19 +225,20 @@ fun PantallaDashboard(
                         )
                     }
                     TabDashboard.CATALOGO -> {
-                        ContenidoCatalogo(
-                            museos = estado.todosLosMuseos,
-                            onNavegarADetalle = onNavegarADetalle
+                        ContenidoPlaceholder(
+                            titulo = "Productos y cursos",
+                            descripcion = "Consulta el catálogo cultural.",
+                            botonTexto = "Abrir catálogo",
+                            onAccion = {
+                                if (estado.puedeAccederCatalogo) onNavegarACatalogo()
+                            }
                         )
                     }
                     TabDashboard.NOTIFICACIONES -> {
-                        ContenidoNotificaciones(sesion = estado.sesion)
+                        ContenidoPlaceholder("Avisos locales", "Consulta los mensajes de tu perfil.", "Abrir avisos", onNavegarAAvisos)
                     }
                     TabDashboard.PERFIL -> {
-                        ContenidoPerfil(
-                            sesion = estado.sesion,
-                            onCerrarSesion = { viewModel.cerrarSesion(onCerrarSesion) }
-                        )
+                        ContenidoPlaceholder("Perfil y configuración", "Edita tus datos y preferencias locales.", "Abrir perfil", onNavegarAPerfil)
                     }
                 }
             }
@@ -226,6 +249,8 @@ fun PantallaDashboard(
 @Composable
 private fun BarraNavegacionInferior(
     tabSeleccionada: TabDashboard,
+    puedeAccederCatalogo: Boolean,
+    avisosNoLeidos: Int,
     onTabSeleccionada: (TabDashboard) -> Unit
 ) {
     NavigationBar(
@@ -240,13 +265,14 @@ private fun BarraNavegacionInferior(
             Triple(TabDashboard.PERFIL, "Perfil", Icons.Filled.Person)
         )
 
-        items.forEach { (tab, etiqueta, icono) ->
+        items.filter { it.first != TabDashboard.CATALOGO || puedeAccederCatalogo }
+            .forEach { (tab, etiqueta, icono) ->
             NavigationBarItem(
                 selected = tabSeleccionada == tab,
                 onClick = { onTabSeleccionada(tab) },
                 icon = {
-                    if (tab == TabDashboard.NOTIFICACIONES) {
-                        BadgedBox(badge = { Badge { Text("2") } }) {
+                    if (tab == TabDashboard.NOTIFICACIONES && avisosNoLeidos > 0) {
+                        BadgedBox(badge = { Badge { Text(avisosNoLeidos.toString()) } }) {
                             Icon(icono, contentDescription = etiqueta)
                         }
                     } else {
@@ -511,25 +537,7 @@ private fun TarjetaMuseoDestacado(museo: Museo, onClick: () -> Unit) {
                     .background(AzulMuseoMedio),
                 contentAlignment = Alignment.Center
             ) {
-
-                Icon(
-                    imageVector = Icons.Filled.AccountBalance,
-                    contentDescription = null,
-                    tint = DoradoPatrimonial.copy(alpha = 0.5f),
-                    modifier = Modifier.size(36.dp)
-                )
-
-                if (museo.imagenUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(museo.imagenUrl)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = museo.nombre,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                ImagenMuseo(museo, modifier = Modifier.fillMaxSize())
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -891,24 +899,7 @@ private fun ContenidoCatalogo(
                             .background(AzulMuseoMedio),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.AccountBalance,
-                            contentDescription = null,
-                            tint = DoradoBrillante.copy(alpha = 0.5f),
-                            modifier = Modifier.size(24.dp)
-                        )
-
-                        if (museo.imagenUrl.isNotBlank()) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(museo.imagenUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = museo.nombre,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                        ImagenMuseo(museo, modifier = Modifier.fillMaxSize())
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {

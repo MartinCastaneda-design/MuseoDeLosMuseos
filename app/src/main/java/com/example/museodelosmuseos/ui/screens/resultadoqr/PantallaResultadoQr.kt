@@ -61,8 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import com.example.museodelosmuseos.ui.components.ImagenMuseo
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.ui.theme.AzulCard
 import com.example.museodelosmuseos.ui.theme.AzulMuseoMedio
@@ -288,16 +287,8 @@ private fun TarjetaMuseoIdentificado(
                     modifier = Modifier.size(56.dp)
                 )
 
-                if (museo != null && museo.imagenUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(museo.imagenUrl)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = titulo,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                if (museo != null) {
+                    ImagenMuseo(museo, modifier = Modifier.fillMaxSize())
                 }
 
                 Surface(

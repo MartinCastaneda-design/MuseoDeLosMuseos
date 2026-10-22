@@ -16,5 +16,10 @@ data class DashboardUiState(
     val museosDestacados: List<Museo> = emptyList(),
     val todosLosMuseos: List<Museo> = emptyList(),
     val tabSeleccionada: TabDashboard = TabDashboard.INICIO,
-    val animacionLista: Boolean = false
-)
+    val animacionLista: Boolean = false,
+    val avisosNoLeidos: Int = 0
+) {
+    val puedeAccederCatalogo: Boolean
+        get() = sesion?.rol?.equals("ADMINISTRADOR", ignoreCase = true) == true ||
+                sesion?.rol?.equals("CLIENTE", ignoreCase = true) == true
+}

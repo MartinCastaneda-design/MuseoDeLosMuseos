@@ -1,5 +1,6 @@
 package com.example.museodelosmuseos.data.remote
 
+import com.example.museodelosmuseos.data.model.ImagenesMuseosDemo
 import com.example.museodelosmuseos.data.local.entity.Museo
 import kotlinx.coroutines.delay
 
@@ -20,7 +21,7 @@ class MuseoApiService {
                 longitud = -74.0758,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-colonial",
                 codigoQr = "MUSEO_COLONIAL_BOGOTA",
-                imagenUrl = "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&auto=format&fit=crop&q=80"
+                imagenUrl = ImagenesMuseosDemo.porCodigo.getValue("MUSEO_COLONIAL_BOGOTA").url
             ),
             Museo(
                 nombre = "Museo Nacional de Bellas Artes",
@@ -32,7 +33,7 @@ class MuseoApiService {
                 longitud = -70.6433,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-nacional-de-bellas-artes-chile",
                 codigoQr = "MUSEO_BELLAS_ARTES_CHILE",
-                imagenUrl = "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80"
+                imagenUrl = ImagenesMuseosDemo.porCodigo.getValue("MUSEO_BELLAS_ARTES_CHILE").url
             ),
             Museo(
                 nombre = "Museo Nacional del Prado",
@@ -44,7 +45,7 @@ class MuseoApiService {
                 longitud = -3.6921,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-del-prado",
                 codigoQr = "MUSEO_PRADO_MADRID",
-                imagenUrl = "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&auto=format&fit=crop&q=80"
+                imagenUrl = ImagenesMuseosDemo.porCodigo.getValue("MUSEO_PRADO_MADRID").url
             ),
             Museo(
                 nombre = "Museo de Arte Moderno",
@@ -56,7 +57,7 @@ class MuseoApiService {
                 longitud = -99.1795,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-de-arte-moderno-mexico",
                 codigoQr = "MUSEO_MAM_MEXICO",
-                imagenUrl = "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=800&auto=format&fit=crop&q=80"
+                imagenUrl = ImagenesMuseosDemo.porCodigo.getValue("MUSEO_MAM_MEXICO").url
             ),
             Museo(
                 nombre = "Museo de Arte de Lima (MALI)",
@@ -68,7 +69,7 @@ class MuseoApiService {
                 longitud = -77.0369,
                 urlVisitaVirtual = "https://artsandculture.google.com/partner/museo-de-arte-de-lima-mali",
                 codigoQr = "MUSEO_MALI_LIMA",
-                imagenUrl = "https://images.unsplash.com/photo-1572953109213-3be62398eb95?w=800&auto=format&fit=crop&q=80"
+                imagenUrl = ImagenesMuseosDemo.porCodigo.getValue("MUSEO_MALI_LIMA").url
             )
         )
     }

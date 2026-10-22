@@ -29,12 +29,8 @@ class MuseoApplication : Application(), ImageLoaderFactory {
         config.osmdroidTileCache = osmdroidTileCache
 
         CoroutineScope(Dispatchers.IO).launch {
-            val db = AppDatabase.obtenerInstancia(this@MuseoApplication)
-            if (db.usuarioDao().buscarPorCorreo("admin@museo.org") == null) {
-                AppDatabase.precargarDatosIniciales(db)
-            } else {
-                AppDatabase.actualizarImagenesSiEsNecesario(db)
-            }
+            // El callback de Room centraliza la inicialización y no depende del correo editable.
+            AppDatabase.obtenerInstancia(this@MuseoApplication).openHelper.writableDatabase
         }
     }
 

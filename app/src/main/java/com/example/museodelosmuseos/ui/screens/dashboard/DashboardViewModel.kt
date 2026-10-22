@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(
@@ -24,8 +27,13 @@ class DashboardViewModel(
 
     private fun observarSesion() {
         viewModelScope.launch {
-            repository.observarSesion().collect { sesion ->
-                _uiState.update { it.copy(sesion = sesion) }
+            repository.observarSesion().collectLatest { sesion ->
+                _uiState.update { it.copy(sesion = sesion, avisosNoLeidos = 0) }
+                if (sesion != null) combine(repository.observarAvisos(sesion.usuarioId), repository.observarPreferencias(sesion.usuarioId)) { avisos, preferencias ->
+                    if (preferencias?.indicadorAvisos == false) 0 else avisos.count { !it.leido }
+                }.catch { emit(0) }.collect { cantidad ->
+                    _uiState.update { it.copy(avisosNoLeidos = cantidad) }
+                }
             }
         }
     }

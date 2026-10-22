@@ -8,9 +8,19 @@ import androidx.activity.enableEdgeToEdge
 import com.example.museodelosmuseos.ui.MuseoApp
 import com.example.museodelosmuseos.ui.theme.MuseoDeLosMuseosTheme
 import org.osmdroid.config.Configuration
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.museodelosmuseos.data.local.AppDatabase
+import com.example.museodelosmuseos.data.repository.MuseoRepository
+import com.example.museodelosmuseos.data.local.entity.PreferenciasUsuario
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 
 class MainActivity : ComponentActivity() {
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -20,8 +30,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val repo = remember { MuseoRepository(AppDatabase.obtenerInstancia(applicationContext)) }
+            val preferenciasFlow = remember { repo.observarSesion().flatMapLatest { sesion ->
+                if (sesion == null) flowOf<PreferenciasUsuario?>(null) else repo.observarPreferencias(sesion.usuarioId)
+            } }
+            val preferencias by preferenciasFlow.collectAsStateWithLifecycle(initialValue = null)
+            val densidad = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(densidad.density,
+                densidad.fontScale * if (preferencias?.textoGrande == true) 1.15f else 1f)) {
             MuseoDeLosMuseosTheme {
                 MuseoApp()
+            }
             }
         }
     }

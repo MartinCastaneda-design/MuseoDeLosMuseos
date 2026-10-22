@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 class DetalleMuseoViewModel(
@@ -36,9 +38,9 @@ class DetalleMuseoViewModel(
         }
 
         viewModelScope.launch {
-            repository.observarSesion().collect { sesion ->
-                _uiState.update { it.copy(sesion = sesion) }
-                if (sesion != null) {
+            repository.observarSesion().collectLatest { sesion ->
+                _uiState.update { it.copy(sesion = sesion, esFavorito = false, mensaje = null) }
+                if (sesion != null && sesion.rol.equals("CLIENTE", true)) {
                     repository.esFavorito(sesion.usuarioId, museoId).collect { esFav ->
                         _uiState.update { it.copy(esFavorito = esFav) }
                     }
@@ -49,19 +51,23 @@ class DetalleMuseoViewModel(
 
     fun alternarFavorito() {
         val sesion = _uiState.value.sesion ?: return
+        if (!sesion.rol.equals("CLIENTE", true)) return
         val nuevoEstado = !_uiState.value.esFavorito
 
         viewModelScope.launch {
-            repository.conmutarFavorito(
-                usuarioId = sesion.usuarioId,
-                museoId = museoId,
-                marcar = nuevoEstado
-            )
-            _uiState.update {
-                it.copy(
-                    mensaje = if (nuevoEstado) "Museo añadido a tus favoritos" else "Museo quitado de tus favoritos"
+            try {
+                repository.conmutarFavorito(
+                    usuarioId = sesion.usuarioId,
+                    museoId = museoId,
+                    marcar = nuevoEstado
                 )
-            }
+                _uiState.update {
+                    it.copy(
+                        mensaje = if (nuevoEstado) "Museo añadido a tus favoritos" else "Museo quitado de tus favoritos"
+                    )
+                }
+            } catch (e: CancellationException) { throw e }
+            catch (e: Exception) { _uiState.update { it.copy(mensaje = e.message ?: "No fue posible actualizar favoritos.") } }
         }
     }
 

@@ -10,6 +10,18 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UsuarioDao {
 
+    @Query("SELECT u.* FROM usuarios u INNER JOIN sesion_activa s ON s.usuarioId = u.id WHERE s.id = 1 AND u.id = :usuarioId")
+    fun observarPerfilActivo(usuarioId: Long): Flow<Usuario?>
+
+    @Query("UPDATE usuarios SET nombre = :nombre, correo = :correo, avatar = :avatar WHERE id = :usuarioId")
+    suspend fun actualizarPerfil(usuarioId: Long, nombre: String, correo: String, avatar: String): Int
+
+    @Query("SELECT p.* FROM preferencias_usuario p INNER JOIN sesion_activa s ON s.usuarioId = p.usuarioId WHERE s.id = 1 AND p.usuarioId = :usuarioId")
+    fun observarPreferencias(usuarioId: Long): Flow<com.example.museodelosmuseos.data.local.entity.PreferenciasUsuario?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun guardarPreferencias(preferencias: com.example.museodelosmuseos.data.local.entity.PreferenciasUsuario)
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun registrar(usuario: Usuario): Long
 

@@ -18,6 +18,8 @@ class LoginViewModel(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    fun limpiarAlCerrarSesion() { _uiState.value = LoginUiState() }
+
     init {
 
         seleccionarRolDemo(Rol.CLIENTE)
@@ -37,6 +39,14 @@ class LoginViewModel(
                 contrasena = CampoFormulario(passDemo, null),
                 error = null
             )
+        }
+        // El perfil permite cambiar el correo: el acceso demo debe utilizar el dato guardado.
+        viewModelScope.launch {
+            val correoGuardado = repository.correoPerfilDemo(rol.name) ?: return@launch
+            _uiState.update { actual ->
+                if (actual.rolSeleccionado == rol && actual.correo.valor == correoDemo)
+                    actual.copy(correo = CampoFormulario(correoGuardado, null)) else actual
+            }
         }
     }
 
