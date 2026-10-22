@@ -6,10 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.museodelosmuseos.data.local.entity.ControlInicializacion
 
-/**
- * Data Access Object (DAO) para verificar y registrar eventos de control
- * del ciclo de vida interno de la base de datos Room.
- */
 @Dao
 interface ControlInicializacionDao {
 

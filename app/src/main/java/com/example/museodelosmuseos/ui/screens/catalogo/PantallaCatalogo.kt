@@ -115,22 +115,6 @@ import com.example.museodelosmuseos.ui.theme.TextoPrimario
 import com.example.museodelosmuseos.ui.theme.TextoSecundario
 import com.example.museodelosmuseos.ui.theme.VerdeExito
 
-/**
- * ============================================================================
- * PANTALLA 9: CATÁLOGO DE PRODUCTOS Y CURSOS
- * ============================================================================
- * Requerimientos funcionales del caso de estudio:
- * - Roles: Administrador y Cliente.
- * - Exhibe cursos, publicaciones, artículos museológicos y materiales de conservación.
- * - Búsqueda en tiempo real por texto (título y descripción).
- * - Filtros por las 4 categorías temáticas y opción 'Todos'.
- * - Tarjetas estructuradas con imágenes, precios de prueba, stock y disponibilidad.
- * - Para el Cliente: consulta y selección de artículos (preparada para Pantalla 10).
- * - Para el Administrador: controles de alta (FAB y formulario modal), modificación,
- *   baja lógica (desactivación/reactivación) y cambio de disponibilidad.
- * - Retroalimentación visual inmediata con mensajes de confirmación y error.
- * ============================================================================
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaCatalogo(
@@ -139,7 +123,7 @@ fun PantallaCatalogo(
     onNavegarADetalleArticulo: ((Long) -> Unit)? = null,
     onNavegarACarrito: () -> Unit = {}
 ) {
-    // 1. Suscripción consciente del ciclo de vida al StateFlow del ViewModel
+
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -219,7 +203,7 @@ fun PantallaCatalogo(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                // ---- SECCIÓN SUPERIOR: BANNERS DE MENSAJES ----
+
                 item(span = { GridItemSpan(2) }) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         BannerMensaje(
@@ -235,7 +219,6 @@ fun PantallaCatalogo(
                     }
                 }
 
-                // ---- SECCIÓN 1: BARRA DE BÚSQUEDA ----
                 item(span = { GridItemSpan(2) }) {
                     BarraBusquedaCatalogo(
                         termino = estado.terminoBusqueda,
@@ -244,7 +227,6 @@ fun PantallaCatalogo(
                     )
                 }
 
-                // ---- SECCIÓN 2: FILTROS POR CATEGORÍA ----
                 item(span = { GridItemSpan(2) }) {
                     FilaFiltrosCategoria(
                         categoriaSeleccionada = estado.categoriaSeleccionada,
@@ -252,7 +234,6 @@ fun PantallaCatalogo(
                     )
                 }
 
-                // ---- SECCIÓN 3: CONTROL DE ADMINISTRADOR PARA INACTIVOS ----
                 if (estado.esAdministrador) {
                     item(span = { GridItemSpan(2) }) {
                         Row(
@@ -293,7 +274,6 @@ fun PantallaCatalogo(
                     }
                 }
 
-                // ---- ESTADO DE CARGA ----
                 if (estado.cargando && estado.articulos.isEmpty()) {
                     item(span = { GridItemSpan(2) }) {
                         Box(
@@ -307,7 +287,6 @@ fun PantallaCatalogo(
                     }
                 }
 
-                // ---- ESTADO VACÍO ----
                 if (articulosVisibles.isEmpty() && !estado.cargando) {
                     item(span = { GridItemSpan(2) }) {
                         EstadoCatalogoVacio(
@@ -320,7 +299,6 @@ fun PantallaCatalogo(
                     }
                 }
 
-                // ---- LISTADO DE TARJETAS DE PRODUCTOS / CURSOS ----
                 items(articulosVisibles, key = { it.id }) { articulo ->
                     TarjetaArticuloCatalogo(
                         articulo = articulo,
@@ -350,7 +328,6 @@ fun PantallaCatalogo(
                 }
             }
 
-            // ---- DIÁLOGO MODAL: FORMULARIO DE ALTA Y EDICIÓN (ADMINISTRADOR) ----
             if (estado.mostrarDialogoFormulario) {
                 DialogoFormularioArticulo(
                     formulario = estado.formulario,
@@ -371,13 +348,6 @@ fun PantallaCatalogo(
     }
 }
 
-// ============================================================================
-// COMPONENTES AUXILIARES DE LA INTERFAZ
-// ============================================================================
-
-/**
- * Barra de búsqueda con ícono principal y botón para limpiar.
- */
 @Composable
 private fun BarraBusquedaCatalogo(
     termino: String,
@@ -426,9 +396,6 @@ private fun BarraBusquedaCatalogo(
     )
 }
 
-/**
- * Carrusel horizontal de chips de filtrado temático.
- */
 @Composable
 private fun FilaFiltrosCategoria(
     categoriaSeleccionada: CategoriaArticulo?,
@@ -470,9 +437,6 @@ private fun FilaFiltrosCategoria(
     }
 }
 
-/**
- * Tarjeta individual para mostrar un artículo cultural (producto o curso).
- */
 @Composable
 private fun TarjetaArticuloCatalogo(
     articulo: ArticuloCatalogo,
@@ -510,7 +474,7 @@ private fun TarjetaArticuloCatalogo(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // ---- IMAGEN Y BADGES ----
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -530,7 +494,6 @@ private fun TarjetaArticuloCatalogo(
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Etiqueta superior de Categoría
                 Surface(
                     color = AzulMuseoProfundo.copy(alpha = 0.85f),
                     shape = RoundedCornerShape(bottomEnd = 8.dp),
@@ -544,7 +507,6 @@ private fun TarjetaArticuloCatalogo(
                     )
                 }
 
-                // Indicador de Inactivo o Disponibilidad
                 if (!articulo.activo) {
                     Surface(
                         color = ErrorRojo.copy(alpha = 0.9f),
@@ -574,7 +536,6 @@ private fun TarjetaArticuloCatalogo(
                 }
             }
 
-            // ---- INFORMACIÓN Y PRECIO ----
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -617,7 +578,6 @@ private fun TarjetaArticuloCatalogo(
                     )
                 }
 
-                // ---- ACCIONES DE GESTIÓN PARA EL ADMINISTRADOR ----
                 if (esAdministrador) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(
@@ -628,7 +588,7 @@ private fun TarjetaArticuloCatalogo(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Editar
+
                         IconButton(
                             onClick = onEditar,
                             modifier = Modifier.size(32.dp)
@@ -641,7 +601,6 @@ private fun TarjetaArticuloCatalogo(
                             )
                         }
 
-                        // Activar / Desactivar
                         IconButton(
                             onClick = onAlternarActivo,
                             modifier = Modifier.size(32.dp)
@@ -654,7 +613,6 @@ private fun TarjetaArticuloCatalogo(
                             )
                         }
 
-                        // Cambiar disponibilidad (En stock / Sin cupos)
                         IconButton(
                             onClick = onAlternarDisponibilidad,
                             modifier = Modifier.size(32.dp)
@@ -673,9 +631,6 @@ private fun TarjetaArticuloCatalogo(
     }
 }
 
-/**
- * Formulario modal de alta y modificación para el Administrador.
- */
 @Composable
 private fun DialogoFormularioArticulo(
     formulario: FormularioArticuloState,
@@ -709,7 +664,7 @@ private fun DialogoFormularioArticulo(
                     .fillMaxSize()
                     .padding(20.dp)
             ) {
-                // Encabezado del diálogo
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -731,14 +686,13 @@ private fun DialogoFormularioArticulo(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Contenido desplazable del formulario
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // 1. TÍTULO
+
                     CampoTextoFormulario(
                         etiqueta = "Título del artículo",
                         campo = formulario.titulo,
@@ -747,7 +701,6 @@ private fun DialogoFormularioArticulo(
                         onValorCambia = onTituloCambia
                     )
 
-                    // 2. CATEGORÍA (SELECTOR DE CHIPS)
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             text = "Categoría temática",
@@ -776,7 +729,6 @@ private fun DialogoFormularioArticulo(
                         }
                     }
 
-                    // 3. DESCRIPCIÓN
                     CampoTextoFormulario(
                         etiqueta = "Descripción o temario",
                         campo = formulario.descripcion,
@@ -787,7 +739,6 @@ private fun DialogoFormularioArticulo(
                         onValorCambia = onDescripcionCambia
                     )
 
-                    // 4. PRECIO Y STOCK EN PARALELO
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -814,7 +765,6 @@ private fun DialogoFormularioArticulo(
                         }
                     }
 
-                    // 5. URL DE IMAGEN
                     OutlinedTextField(
                         value = formulario.imagenUrl,
                         onValueChange = onImagenUrlCambia,
@@ -835,7 +785,6 @@ private fun DialogoFormularioArticulo(
                         )
                     )
 
-                    // 6. TOGGLES: DISPONIBILIDAD Y ESTADO ACTIVO
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -883,7 +832,6 @@ private fun DialogoFormularioArticulo(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Botones de acción del diálogo
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -926,10 +874,6 @@ private fun DialogoFormularioArticulo(
     }
 }
 
-/**
- * Campo de texto reutilizable para el formulario que enlaza con [CampoFormulario]
- * y aplica las convenciones de validación del profesor Cristian.
- */
 @Composable
 private fun CampoTextoFormulario(
     etiqueta: String,
@@ -983,9 +927,6 @@ private fun CampoTextoFormulario(
     )
 }
 
-/**
- * Banner de notificación de éxito o error con botón para cerrar.
- */
 @Composable
 private fun BannerMensaje(
     mensaje: String?,
@@ -1051,9 +992,6 @@ private fun BannerMensaje(
     }
 }
 
-/**
- * Vista de catálogo vacío o búsqueda sin resultados.
- */
 @Composable
 private fun EstadoCatalogoVacio(
     hayBusqueda: Boolean,
@@ -1099,9 +1037,6 @@ private fun EstadoCatalogoVacio(
     }
 }
 
-/**
- * Función utilitaria para dar formato visual al precio.
- */
 private fun formatearPrecio(precio: Double): String {
     return if (precio >= 1000) {
         "$" + "%,d".format(precio.toLong()).replace(',', '.')

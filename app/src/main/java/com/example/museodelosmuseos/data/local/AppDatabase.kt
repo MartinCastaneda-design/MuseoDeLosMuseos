@@ -36,11 +36,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Base de datos Room del proyecto Museo de los Museos.
- * Maneja usuarios, museos de Iberoamérica, favoritos por perfil, historial de QR, sesión
- * y el catálogo de productos y cursos (Pantalla 9).
- */
 @Database(
     entities = [
         Usuario::class,
@@ -146,11 +141,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * Migración no destructiva de la versión 2 a la 3:
-         * Crea las tablas `articulos_catalogo` y `control_inicializacion` con sus respectivos
-         * índices sin eliminar los registros previos de usuarios, museos o favoritos.
-         */
+        // Crea el catálogo y su control de precarga sin borrar datos de la versión 2.
         val MIGRACION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -197,8 +188,8 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) {
                             super.onOpen(db)
-                            // Garantiza que tras una migración o apertura la BD nunca quede vacía,
-                            // respetando la bandera persistente de precarga única
+                            // Respeta la marca de precarga al abrir o migrar la base de datos.
+
                             CoroutineScope(Dispatchers.IO).launch {
                                 inicializarDatos(obtenerInstancia(context))
                             }
@@ -218,10 +209,7 @@ abstract class AppDatabase : RoomDatabase() {
             actualizarImagenesSiEsNecesario(database)
         }
 
-        /**
-         * Inserta usuarios, museos y artículos del catálogo de demostración
-         * para que la aplicación esté lista para evaluar desde la primera ejecución.
-         */
+        // Carga los datos de demostración sin sobrescribir los existentes.
         suspend fun precargarDatosIniciales(database: AppDatabase) {
             val usuariosDemo = listOf(
                 Usuario(
@@ -318,15 +306,14 @@ abstract class AppDatabase : RoomDatabase() {
             database.museoDao().insertarSiNoExisten(museosDemo)
             actualizarImagenesSiEsNecesario(database)
 
-            // ---- ARTÍCULOS DE CATÁLOGO (PANTALLA 9) CON IDs ESTABLES ----
-            // Se verifica la bandera persistente en Room para asegurar una única inserción inicial.
-            // Si el administrador modificó, desactivó o eliminó artículos, sus cambios no se sobrescribirán.
+            // Precarga una sola vez para conservar los cambios del Administrador.
+
             val controlDao = database.controlInicializacionDao()
             val yaPrecargadoCatalogo = controlDao.existeClave(CLAVE_CATALOGO_PRECARGADO) > 0
 
             if (!yaPrecargadoCatalogo) {
                 val articulosDemo = listOf(
-                    // 1. CURSOS
+
                     ArticuloCatalogo(
                         id = 1L,
                         titulo = "Curso Virtual: Conservación y Restauración Textil",
@@ -350,7 +337,6 @@ abstract class AppDatabase : RoomDatabase() {
                         stock = 20
                     ),
 
-                    // 2. PUBLICACIONES
                     ArticuloCatalogo(
                         id = 3L,
                         titulo = "Catálogo Razonado: Pintura Virreinal en Iberoamérica",
@@ -374,7 +360,6 @@ abstract class AppDatabase : RoomDatabase() {
                         stock = 12
                     ),
 
-                    // 3. ARTÍCULOS MUSEOLÓGICOS
                     ArticuloCatalogo(
                         id = 5L,
                         titulo = "Lámina Giclée de Colección: Retablo Colonial",
@@ -398,7 +383,6 @@ abstract class AppDatabase : RoomDatabase() {
                         stock = 5
                     ),
 
-                    // 4. MATERIALES DE CONSERVACIÓN
                     ArticuloCatalogo(
                         id = 7L,
                         titulo = "Kit de Limpieza y Estabilización de Metales Antiguos",

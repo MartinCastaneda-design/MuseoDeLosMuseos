@@ -177,7 +177,6 @@ class MuseoRepository(
         avisoSolicitud(usuarioId, "curso-$usuarioId-$articuloId", "Consulta de curso registrada", "Tu consulta sobre ${articulo.titulo} se guardó en este dispositivo. Aún no se envía a la organización.")
     }
 
-    // --- SESIÓN Y USUARIOS ---
     fun observarPerfilActivo(usuarioId: Long) = usuarioDao.observarPerfilActivo(usuarioId)
     suspend fun correoPerfilDemo(rol: String): String? = usuarioDao.obtenerPorRol(rol).minByOrNull { it.id }?.correo
     fun observarPreferencias(usuarioId: Long) = usuarioDao.observarPreferencias(usuarioId)
@@ -321,7 +320,6 @@ class MuseoRepository(
         historialQrDao.guardarLectura(registro)
     }
 
-    // --- CATÁLOGO DE PRODUCTOS Y CURSOS (PANTALLA 9) ---
     fun observarCatalogo(soloActivos: Boolean = true): Flow<List<ArticuloCatalogo>> {
         return if (soloActivos) {
             articuloCatalogoDao.observarActivos()
@@ -350,18 +348,11 @@ class MuseoRepository(
         articuloCatalogoDao.actualizarDisponibilidad(id, disponible)
     }
 
-    /**
-     * Desactiva un artículo del catálogo (baja lógica).
-     * Cumple la regla de integridad de negocio: no borra físicamente el registro
-     * para preservar compras, pedidos e inscripciones en las pantallas 10 y 12.
-     */
+    // Desactiva sin borrar el artículo para conservar las compras históricas.
     suspend fun desactivarArticuloCatalogo(id: Long) {
         articuloCatalogoDao.actualizarEstadoActivo(id, activo = false)
     }
 
-    /**
-     * Reactiva un artículo previamente desactivado.
-     */
     suspend fun reactivarArticuloCatalogo(id: Long) {
         articuloCatalogoDao.actualizarEstadoActivo(id, activo = true)
     }
@@ -370,10 +361,7 @@ class MuseoRepository(
         articuloCatalogoDao.actualizarEstadoActivo(id, activo)
     }
 
-    /**
-     * Eliminación segura: redirige la acción de borrado hacia una desactivación lógica
-     * para proteger la integridad referencial de transacciones históricas.
-     */
+    // El borrado desactiva el artículo para conservar el historial.
     suspend fun eliminarArticuloCatalogo(articulo: ArticuloCatalogo) {
         desactivarArticuloCatalogo(articulo.id)
     }

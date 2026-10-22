@@ -13,31 +13,10 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ============================================================================
- * GUÍA DE ARQUITECTURA: CatalogoViewModel
- * ============================================================================
- * Propósito:
- * Gestiona el estado reactivo, la sincronización con Room (SQLite), la lógica
- * de filtrado y búsqueda, la autorización por roles y las validaciones del
- * formulario para la Pantalla 9: Catálogo de Productos y Cursos.
- *
- * Patrones implementados (según el estándar del profesor Cristian):
- * - MVVM (Model-View-ViewModel): Desacopla la lógica de negocio y validación de la UI.
- * - Patrón Backing Property: Encapsula el estado con _uiState privado y uiState público inmutable.
- * - Flujo Unidireccional de Datos (UDF): Modificaciones seguras mediante .update y .copy().
- * - Single Source of Truth: Emite estados reactivos centralizados con StateFlow.
- * ============================================================================
- */
 class CatalogoViewModel(
     private val repository: MuseoRepository
 ) : ViewModel() {
 
-    // ============================================================================
-    // PATRÓN BACKING PROPERTY (Propiedad de respaldo)
-    // 1. Privada con guion bajo (_): Solo este ViewModel puede mutar el estado.
-    // 2. Pública sin guion bajo: La interfaz de Compose solo puede LEER el estado.
-    // ============================================================================
     private val _uiState = MutableStateFlow(CatalogoUiState())
     val uiState: StateFlow<CatalogoUiState> = _uiState.asStateFlow()
 
@@ -47,13 +26,7 @@ class CatalogoViewModel(
         observarSesionUsuario()
     }
 
-    // --- 1. OBSERVACIÓN REACTIVA DE DATOS Y ROLES ---
-
-    /**
-     * Monitorea la sesión activa del usuario para adaptar las capacidades de la pantalla.
-     * Si el rol es Cliente, se limita la consulta a artículos activos.
-     * Si el rol es Administrador, se habilita la gestión completa y vista de inactivos.
-     */
+    // El rol determina si se pueden consultar artículos inactivos.
     private fun observarSesionUsuario() {
         viewModelScope.launch {
             repository.observarSesion().collect { sesion ->
@@ -71,11 +44,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Conecta con Room a través del repositorio.
-     * Si el usuario es Administrador consulta todos los registros para su gestión;
-     * si es Cliente consulta únicamente los activos desde la base de datos.
-     */
     private fun iniciarObservacionCatalogo(esAdmin: Boolean) {
         observacionArticulosJob?.cancel()
         observacionArticulosJob = viewModelScope.launch {
@@ -101,51 +69,27 @@ class CatalogoViewModel(
         }
     }
 
-    // --- 2. BÚSQUEDA Y FILTRADO REACTIVO ---
-
-    /**
-     * Actualiza el término de búsqueda ingresado por el usuario.
-     */
     fun actualizarBusqueda(termino: String) {
         _uiState.update { it.copy(terminoBusqueda = termino) }
     }
 
-    /**
-     * Selecciona una categoría cultural para filtrar o null para ver todas.
-     */
     fun seleccionarCategoria(categoria: CategoriaArticulo?) {
         _uiState.update { it.copy(categoriaSeleccionada = categoria) }
     }
 
-    /**
-     * Alterna la visualización de artículos inactivos (exclusivo para Administrador).
-     */
     fun alternarMostrarSoloActivos() {
         if (!_uiState.value.esAdministrador) return
         _uiState.update { it.copy(mostrarSoloActivos = !it.mostrarSoloActivos) }
     }
 
-    // --- 3. SELECCIÓN DE ARTÍCULO (PARA PANTALLA 10: DETALLE Y COMPRA) ---
-
-    /**
-     * Registra el artículo seleccionado por su ID.
-     */
     fun seleccionarArticulo(id: Long) {
         _uiState.update { it.copy(articuloSeleccionadoId = id) }
     }
 
-    /**
-     * Restablece la selección de artículo.
-     */
     fun limpiarSeleccionArticulo() {
         _uiState.update { it.copy(articuloSeleccionadoId = null) }
     }
 
-    // --- 4. ACCIONES DE GESTIÓN PARA ADMINISTRADOR ---
-
-    /**
-     * Prepara el formulario para el alta de un nuevo artículo cultural.
-     */
     fun iniciarCreacion() {
         if (!_uiState.value.esAdministrador) return
         _uiState.update {
@@ -157,9 +101,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Carga los datos de un artículo existente en el formulario para su edición.
-     */
     fun iniciarEdicion(articulo: ArticuloCatalogo) {
         if (!_uiState.value.esAdministrador) return
         val categoriaEnum = CategoriaArticulo.desdeTexto(articulo.categoria) ?: CategoriaArticulo.CURSO
@@ -189,9 +130,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Cierra el formulario descartando los cambios temporales.
-     */
     fun cancelarFormulario() {
         _uiState.update {
             it.copy(
@@ -201,10 +139,7 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Realiza la baja lógica de un artículo en SQLite/Room.
-     * Preserva la integridad de compras y registros históricos.
-     */
+    // Desactiva sin borrar para conservar el historial de compras.
     fun desactivarArticulo(id: Long) {
         if (!_uiState.value.esAdministrador) return
         viewModelScope.launch {
@@ -221,9 +156,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Reactiva un artículo previamente desactivado.
-     */
     fun reactivarArticulo(id: Long) {
         if (!_uiState.value.esAdministrador) return
         viewModelScope.launch {
@@ -240,9 +172,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Modifica la disponibilidad para solicitudes o inscripciones de clientes.
-     */
     fun cambiarDisponibilidad(id: Long, disponible: Boolean) {
         if (!_uiState.value.esAdministrador) return
         viewModelScope.launch {
@@ -259,8 +188,6 @@ class CatalogoViewModel(
             }
         }
     }
-
-    // --- 5. ENTRADAS Y VALIDACIONES REACTIVAS DEL FORMULARIO ---
 
     fun cambiarTituloFormulario(valor: String) {
         _uiState.update { estado ->
@@ -292,9 +219,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Sanitiza la entrada de precio aceptando números enteros y decimales.
-     */
     fun cambiarPrecioFormulario(valor: String) {
         val sanitizado = valor.trim().replace(',', '.')
         if (sanitizado.isEmpty() || sanitizado.matches(Regex("""^\d*(\.\d{0,2})?$"""))) {
@@ -309,9 +233,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Sanitiza el stock aceptando únicamente dígitos enteros positivos.
-     */
     fun cambiarStockFormulario(valor: String) {
         val sanitizado = valor.trim()
         if (sanitizado.isEmpty() || (sanitizado.all(Char::isDigit) && sanitizado.length <= 5)) {
@@ -350,10 +271,6 @@ class CatalogoViewModel(
         }
     }
 
-    /**
-     * Realiza un barrido completo de validaciones sincronizadas y persiste
-     * el artículo en Room si todos los campos son conformes.
-     */
     fun guardarFormulario() {
         if (!_uiState.value.esAdministrador) {
             _uiState.update { it.copy(mensajeError = "Operación no autorizada para el rol actual.") }
@@ -434,8 +351,6 @@ class CatalogoViewModel(
         }
     }
 
-    // --- 6. RETROALIMENTACIÓN VISUAL ---
-
     fun limpiarMensajeConfirmacion() {
         _uiState.update { it.copy(mensajeConfirmacion = null) }
     }
@@ -443,8 +358,6 @@ class CatalogoViewModel(
     fun limpiarMensajeError() {
         _uiState.update { it.copy(mensajeError = null) }
     }
-
-    // --- 7. REGLAS DE NEGOCIO PRIVADAS (Validaciones) ---
 
     private fun validarTitulo(valor: String): String? = when {
         valor.isBlank() -> "El título del artículo es obligatorio"

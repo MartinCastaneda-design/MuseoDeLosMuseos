@@ -140,7 +140,7 @@ fun PantallaDetalleMuseo(
                 },
                 actions = {
                     if (rol == "CLIENTE") TextButton(onClick = onAbrirFavoritos) { Text("Mis favoritos", color = DoradoPatrimonial) }
-                    // Si el usuario es Cliente, acceso directo al botón de favoritos
+
                     if (rol == "CLIENTE") {
                         IconButton(onClick = { viewModel.alternarFavorito() }) {
                             Icon(

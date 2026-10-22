@@ -9,11 +9,6 @@ import androidx.room.Update
 import com.example.museodelosmuseos.data.local.entity.ArticuloCatalogo
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Data Access Object (DAO) para el catálogo de productos y cursos (Pantalla 9).
- * Provee operaciones reactivas y síncronas requeridas tanto por el Cliente
- * (consulta y filtrado) como por el Administrador (alta, edición y desactivación).
- */
 @Dao
 interface ArticuloCatalogoDao {
 
