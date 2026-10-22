@@ -38,7 +38,11 @@ Se resolvieron nueve bloques en cuatro archivos, conservando el resto de la comb
 - Incluye pruebas nuevas de actualización selectiva/idempotente de imágenes, conservación de perfiles, sesión, stock y preferencias, y migración de una base aislada v2 a v7 conservando usuarios, museos y favoritos.
 - `lintDebug`: correcto, sin errores; 28 advertencias informativas o de mantenimiento. No se cambian versiones para eliminar esos avisos.
 - Instalación de la aplicación integrada en Samsung SM-A146M con `install -r`, conservando los datos de la instalación existente.
-- La prueba automatizada de interfaz y la comprobación manual del Samsung están pendientes de desbloquear el teléfono al redactar este informe.
+- Prueba automatizada `PerfilPantallaTest`: correcta en el Samsung con la pantalla encendida (21 pruebas Android aprobadas en total, sumando las 20 de datos). El primer intento con la pantalla apagada no encontró la jerarquía Compose; la repetición aprobó sin cambios de código.
+- Comprobación manual del Cliente: Dashboard → Catálogo → Detalle → Carrito → Historial, regreso mediante Atrás, avisos y perfil. El historial conserva una solicitud anterior con sus productos, monto histórico y estado; el perfil conserva el nombre editado.
+- Cambio de sesión comprobado entre Cliente, Administrador e Investigador. El Administrador abre la gestión de todos los clientes y dispone de actualización de estado; el Investigador no presenta accesos al catálogo ni al historial de compras.
+- Se restauró la sesión original del Cliente. No se editaron perfiles, no se marcaron avisos como leídos, no se agregaron productos ni se modificaron solicitudes durante este recorrido.
+- Esta comprobación adicional no incluyó captura con cámara, lectura QR física, precisión GPS ni una nueva prueba de fotografías sin conexión. Esas comprobaciones específicas siguen pendientes para la versión integrada.
 
 ## Revisión previa a main y al video
 
