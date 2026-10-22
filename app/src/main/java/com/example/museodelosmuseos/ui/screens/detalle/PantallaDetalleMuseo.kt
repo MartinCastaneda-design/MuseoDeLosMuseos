@@ -80,8 +80,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import com.example.museodelosmuseos.ui.components.ImagenMuseo
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.ui.theme.AzulCard
 import com.example.museodelosmuseos.ui.theme.AzulMuseoMedio
@@ -285,59 +284,13 @@ private fun BannerImagenReferencial(museo: Museo) {
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (museo.imagenUrl.isNotBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(museo.imagenUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = museo.nombre,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+            ImagenMuseo(museo, modifier = Modifier.fillMaxSize(), mostrarCreditosAlTocar = true)
+            // Sombreado inferior para mantener la legibilidad del país.
+            Box(
+                modifier = Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(listOf(Color.Transparent, FondoOscuro.copy(alpha = 0.85f)))
                 )
-                // Sombreado inferior para legibilidad del texto
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color.Transparent, FondoOscuro.copy(alpha = 0.85f))
-                            )
-                        )
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(AzulMuseoMedio, AzulMuseoProfundo)
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(70.dp)
-                                .clip(CircleShape)
-                                .background(AzulMuseoProfundo)
-                                .border(2.dp, DoradoPatrimonial, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.AccountBalance,
-                                contentDescription = "Monumento",
-                                tint = DoradoBrillante,
-                                modifier = Modifier.size(38.dp)
-                            )
-                        }
-                    }
-                }
-            }
+            )
 
             // Badge con el país en la esquina inferior izquierda
             Surface(

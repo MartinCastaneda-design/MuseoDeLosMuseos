@@ -20,12 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import com.example.museodelosmuseos.R
+import com.example.museodelosmuseos.ui.components.ImagenMuseo
 import com.example.museodelosmuseos.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +32,6 @@ fun PantallaFavoritos(viewModel: FavoritosViewModel, onVolver: () -> Unit, onAbr
     onExplorar: () -> Unit) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val navegador = LocalUriHandler.current
-    val respaldo = painterResource(R.drawable.favoritos_museo)
     LaunchedEffect(estado.enlacePendiente) {
         estado.enlacePendiente?.let { url ->
             val fallo = runCatching { navegador.openUri(url) }.isFailure
@@ -73,9 +70,7 @@ fun PantallaFavoritos(viewModel: FavoritosViewModel, onVolver: () -> Unit, onAbr
             items(estado.filtrados, key = { it.id }) { museo ->
                 Card(modifier = Modifier.fillMaxWidth().animateContentSize(), colors = CardDefaults.cardColors(containerColor = SuperficieCard)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        AsyncImage(model = museo.imagenUrl.trim().takeIf { it.isNotEmpty() }, placeholder = respaldo,
-                            error = respaldo, fallback = respaldo, contentDescription = museo.nombre,
-                            contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(160.dp))
+                        ImagenMuseo(museo, modifier = Modifier.fillMaxWidth().height(160.dp))
                         Text(museo.nombre, color = DoradoPatrimonial, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                         Text(museo.pais, color = TextoPrimario)
                         if (museo.clasificacion.isNotBlank()) Text(museo.clasificacion, color = TextoSecundario)

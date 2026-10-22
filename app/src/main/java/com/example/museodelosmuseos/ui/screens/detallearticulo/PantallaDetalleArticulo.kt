@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
@@ -20,11 +19,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.museodelosmuseos.R
 import com.example.museodelosmuseos.data.model.CategoriaArticulo
 import com.example.museodelosmuseos.ui.theme.*
 import java.text.NumberFormat
@@ -62,12 +65,27 @@ fun PantallaDetalleArticulo(viewModel: DetalleArticuloViewModel, onVolver: () ->
                 Text("Cargando artículo…", color = TextoSecundario)
             }
             estado.articulo?.let { articulo ->
-                if (articulo.imagenUrl.isNotBlank()) {
-                    AsyncImage(model = articulo.imagenUrl, contentDescription = articulo.titulo,
-                        contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(220.dp))
-                } else {
-                    Icon(Icons.Filled.ShoppingBag, "Artículo sin imagen", tint = DoradoPatrimonial, modifier = Modifier.size(72.dp))
-                }
+                val imagenRespaldo = painterResource(
+                    when (CategoriaArticulo.desdeTexto(articulo.categoria)) {
+                        CategoriaArticulo.CURSO -> R.drawable.catalogo_cursos
+                        CategoriaArticulo.PUBLICACION -> R.drawable.catalogo_publicaciones
+                        CategoriaArticulo.ARTICULO_MUSEOLOGICO -> R.drawable.catalogo_articulos
+                        CategoriaArticulo.MATERIAL_CONSERVACION -> R.drawable.catalogo_conservacion
+                        null -> R.drawable.catalogo_articulos
+                    }
+                )
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(articulo.imagenUrl.trim().takeIf { it.isNotEmpty() })
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = articulo.titulo,
+                    placeholder = imagenRespaldo,
+                    error = imagenRespaldo,
+                    fallback = imagenRespaldo,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().height(220.dp)
+                )
                 Text(articulo.titulo, style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold, color = TextoPrimario)
                 Text(CategoriaArticulo.desdeTexto(articulo.categoria)?.etiqueta ?: articulo.categoria,

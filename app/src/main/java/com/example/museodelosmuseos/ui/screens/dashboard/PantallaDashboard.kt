@@ -62,8 +62,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -77,6 +75,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.museodelosmuseos.ui.components.ImagenMuseo
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
 import com.example.museodelosmuseos.ui.theme.AzulCard
@@ -566,24 +565,7 @@ private fun TarjetaMuseoDestacado(museo: Museo, onClick: () -> Unit) {
                     .background(AzulMuseoMedio),
                 contentAlignment = Alignment.Center
             ) {
-                if (museo.imagenUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(museo.imagenUrl)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = museo.nombre,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.AccountBalance,
-                        contentDescription = null,
-                        tint = DoradoPatrimonial,
-                        modifier = Modifier.size(38.dp)
-                    )
-                }
+                ImagenMuseo(museo, modifier = Modifier.fillMaxSize())
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -957,19 +939,7 @@ private fun ContenidoCatalogo(
                             .background(AzulMuseoMedio),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (museo.imagenUrl.isNotBlank()) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(museo.imagenUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = museo.nombre,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            Icon(Icons.Filled.AccountBalance, contentDescription = null, tint = DoradoBrillante, modifier = Modifier.size(24.dp))
-                        }
+                        ImagenMuseo(museo, modifier = Modifier.fillMaxSize())
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
