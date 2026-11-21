@@ -2,6 +2,7 @@ package com.example.museodelosmuseos.ui.screens.detalle
 
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
+import com.example.museodelosmuseos.data.model.clima.InfoClima
 
 data class DetalleMuseoUiState(
 
@@ -23,5 +24,11 @@ data class DetalleMuseoUiState(
 
     val mensaje: String? = null,
 
-    val cargando: Boolean = true
+    val cargando: Boolean = true,
+
+    val clima: InfoClima? = null,
+
+    val cargandoClima: Boolean = false,
+
+    val errorClima: String? = null
 )

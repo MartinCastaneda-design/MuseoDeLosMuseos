@@ -80,6 +80,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.WaterDrop
+import com.example.museodelosmuseos.data.model.clima.InfoClima
 import com.example.museodelosmuseos.ui.components.ImagenMuseo
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.ui.theme.AzulCard
@@ -185,6 +190,15 @@ fun PantallaDetalleMuseo(
                         BannerImagenReferencial(museo = museo)
 
                         TarjetaInformacionGeneral(museo = museo)
+
+                        TarjetaClimaEnVivo(
+                            ciudad = museo.ciudad,
+                            pais = museo.pais,
+                            clima = estado.clima,
+                            cargando = estado.cargandoClima,
+                            error = estado.errorClima,
+                            onReintentar = { viewModel.reintentarClima() }
+                        )
 
                         TarjetaRecorridoVirtual(
                             museo = museo,
@@ -713,7 +727,6 @@ private fun VisorRecorridoVirtualDialog(
                             settings.domStorageEnabled = true
                             settings.loadWithOverviewMode = true
                             settings.useWideViewPort = true
-                            settings.databaseEnabled = true
                             settings.setSupportZoom(true)
                             settings.builtInZoomControls = true
                             settings.displayZoomControls = false
@@ -723,6 +736,187 @@ private fun VisorRecorridoVirtualDialog(
                     },
                     modifier = Modifier.fillMaxSize()
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TarjetaClimaEnVivo(
+    ciudad: String,
+    pais: String,
+    clima: InfoClima?,
+    cargando: Boolean,
+    error: String?,
+    onReintentar: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = AzulCard),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = Brush.horizontalGradient(listOf(DoradoPatrimonial.copy(alpha = 0.6f), AzulMuseoMedio))
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.Cloud,
+                        contentDescription = null,
+                        tint = DoradoBrillante,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Clima en tiempo real",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = TextoPrimario
+                    )
+                }
+                Surface(
+                    color = AzulMuseoMedio,
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        text = "$ciudad, $pais",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = DoradoPatrimonial,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            when {
+                cargando -> {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = DoradoBrillante,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Consultando Open-Meteo REST API...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextoSecundario
+                        )
+                    }
+                }
+                error != null -> {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "No se pudo sincronizar el clima: $error",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ErrorRojo
+                        )
+                        OutlinedButton(
+                            onClick = onReintentar,
+                            modifier = Modifier.align(Alignment.End),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = DoradoPatrimonial)
+                        ) {
+                            Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Reintentar", fontSize = 12.sp)
+                        }
+                    }
+                }
+                clima != null -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = clima.icono,
+                                fontSize = 34.sp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "${clima.temperatura}°C",
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = TextoPrimario
+                                )
+                                Text(
+                                    text = clima.condicion,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = DoradoBrillante
+                                )
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Filled.WaterDrop,
+                                    contentDescription = null,
+                                    tint = DoradoPatrimonial,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Humedad: ${clima.humedad}%",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextoSecundario
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Filled.Air,
+                                    contentDescription = null,
+                                    tint = DoradoPatrimonial,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Viento: ${clima.vientoKmH} km/h",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextoSecundario
+                                )
+                            }
+                        }
+                    }
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = AzulMuseoProfundo.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "💡 ${clima.recomendacionVisita}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextoPrimario,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "📡 Datos en vivo obtenidos vía Retrofit desde Open-Meteo REST API",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextoApagado,
+                        fontSize = 10.sp
+                    )
+                }
             }
         }
     }

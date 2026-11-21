@@ -2,6 +2,7 @@ package com.example.museodelosmuseos.ui.screens.detalle
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.museodelosmuseos.data.repository.ClimaRepository
 import com.example.museodelosmuseos.data.repository.MuseoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class DetalleMuseoViewModel(
     private val repository: MuseoRepository,
-    private val museoId: Long
+    private val museoId: Long,
+    private val climaRepository: ClimaRepository = ClimaRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetalleMuseoUiState())
@@ -33,6 +35,9 @@ class DetalleMuseoViewModel(
                         cargando = false,
                         descripcionEditada = museo?.descripcion ?: ""
                     )
+                }
+                if (museo != null && _uiState.value.clima == null && !_uiState.value.cargandoClima) {
+                    consultarClima(museo.latitud, museo.longitud)
                 }
             }
         }
@@ -129,6 +134,26 @@ class DetalleMuseoViewModel(
                 mensaje = "Publicación de la ficha oficial aprobada por el Administrador"
             )
         }
+    }
+
+    fun consultarClima(latitud: Double, longitud: Double) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(cargandoClima = true, errorClima = null) }
+            val resultado = climaRepository.consultarClimaCiudad(latitud, longitud)
+            resultado.fold(
+                onSuccess = { info ->
+                    _uiState.update { it.copy(clima = info, cargandoClima = false) }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(errorClima = error.message, cargandoClima = false) }
+                }
+            )
+        }
+    }
+
+    fun reintentarClima() {
+        val museo = _uiState.value.museo ?: return
+        consultarClima(museo.latitud, museo.longitud)
     }
 
     fun limpiarMensaje() {

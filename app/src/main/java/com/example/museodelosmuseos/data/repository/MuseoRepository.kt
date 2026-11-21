@@ -151,7 +151,7 @@ class MuseoRepository(
     fun observarSolicitudesInformacion(usuarioId: Long): Flow<List<SolicitudInformacion>> =
         compraDao.observarSolicitudes(usuarioId)
 
-    /** Revalida sesión, disponibilidad y cantidad acumulada de forma atómica. */
+
     suspend fun agregarAlCarrito(usuarioId: Long, articuloId: Long, cantidad: Int) = database.withTransaction {
         ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
         val articulo = articuloCatalogoDao.obtenerPorId(articuloId)
