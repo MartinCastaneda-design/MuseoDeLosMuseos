@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-// El precio numérico permite calcular compras sin usar texto formateado.
 @Entity(
     tableName = "articulos_catalogo",
     indices = [

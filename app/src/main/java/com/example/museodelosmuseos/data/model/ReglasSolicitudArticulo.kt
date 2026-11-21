@@ -3,7 +3,6 @@ package com.example.museodelosmuseos.data.model
 import com.example.museodelosmuseos.data.local.entity.ArticuloCatalogo
 import com.example.museodelosmuseos.data.local.entity.SesionActiva
 
-/** Reglas compartidas por el formulario y la transacción local (sin dependencias de UI). */
 object ReglasSolicitudArticulo {
     fun validarAcceso(sesion: SesionActiva?, usuarioEsperado: Long): String? = when {
         sesion == null || sesion.usuarioId != usuarioEsperado -> "La sesión cambió. Vuelve al catálogo."

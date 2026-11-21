@@ -277,7 +277,7 @@ private fun BannerImagenReferencial(museo: Museo) {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             ImagenMuseo(museo, modifier = Modifier.fillMaxSize(), mostrarCreditosAlTocar = true)
-            // Sombreado inferior para mantener la legibilidad del país.
+
             Box(
                 modifier = Modifier.fillMaxSize().background(
                     Brush.verticalGradient(listOf(Color.Transparent, FondoOscuro.copy(alpha = 0.85f)))

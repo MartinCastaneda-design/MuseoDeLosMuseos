@@ -5,7 +5,6 @@ import com.example.museodelosmuseos.R
 
 data class FotoMuseoLocal(@param:DrawableRes val recurso: Int, val autor: String, val fuente: String, val licencia: String, val licenciaUrl: String)
 
-/** Identidad estable del museo; no usa IDs Room ni coincidencias parciales de nombres. */
 object FotosMuseos {
     fun paraCodigo(codigoQr: String): FotoMuseoLocal? = when (codigoQr.uppercase(java.util.Locale.ROOT)) {
         "MUSEO_COLONIAL_BOGOTA" -> FotoMuseoLocal(R.drawable.museo_colonial_bogota, "Javier Benítez", "https://commons.wikimedia.org/wiki/File:Fachada_del_Museo_de_Arte_Colonial.JPG", "CC BY-SA 3.0", "https://creativecommons.org/licenses/by-sa/3.0")

@@ -5,7 +5,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/** Mensaje de demostración del dispositivo. No representa una notificación push. */
 @Entity(tableName = "avisos_locales", foreignKeys = [ForeignKey(entity = Usuario::class,
     parentColumns = ["id"], childColumns = ["usuarioDestinoId"], onDelete = ForeignKey.CASCADE)],
     indices = [Index("usuarioDestinoId"), Index("rolDestino")])

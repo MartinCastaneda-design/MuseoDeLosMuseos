@@ -19,7 +19,6 @@ import com.example.museodelosmuseos.R
 import com.example.museodelosmuseos.data.local.entity.Museo
 import com.example.museodelosmuseos.data.model.ImagenesMuseosDemo
 
-/** Mismo respaldo durante carga, error y URL vacía, sin alterar el tamaño del contenedor. */
 @Composable
 fun ImagenMuseo(museo: Museo, modifier: Modifier = Modifier, mostrarCreditosAlTocar: Boolean = false) {
     val foto = FotosMuseos.paraCodigo(museo.codigoQr)

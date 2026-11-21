@@ -118,7 +118,7 @@ class MuseoRepository(
         ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
         val anterior = compraDao.obtenerItem(usuarioId, articuloId) ?: error("El producto ya no está en el carrito.")
         val articulo = articuloCatalogoDao.obtenerPorId(articuloId) ?: error("El producto ya no existe.")
-        // Una reducción permite corregir un carrito cuyo stock disminuyó; confirmar siempre revalida todo.
+
         require(cantidad > 0 && (cantidad < anterior.cantidad || cantidad <= articulo.stock)) { "La cantidad supera el stock disponible." }
         if (cantidad > anterior.cantidad) ReglasSolicitudArticulo.validarDisponibilidad(articulo)?.let { error(it) }
         compraDao.guardarItem(anterior.copy(cantidad = cantidad))
@@ -150,7 +150,6 @@ class MuseoRepository(
 
     fun observarSolicitudesInformacion(usuarioId: Long): Flow<List<SolicitudInformacion>> =
         compraDao.observarSolicitudes(usuarioId)
-
 
     suspend fun agregarAlCarrito(usuarioId: Long, articuloId: Long, cantidad: Int) = database.withTransaction {
         ReglasSolicitudArticulo.validarAcceso(sesionDao.obtenerSesion(), usuarioId)?.let { error(it) }
@@ -348,7 +347,6 @@ class MuseoRepository(
         articuloCatalogoDao.actualizarDisponibilidad(id, disponible)
     }
 
-    // Desactiva sin borrar el artículo para conservar las compras históricas.
     suspend fun desactivarArticuloCatalogo(id: Long) {
         articuloCatalogoDao.actualizarEstadoActivo(id, activo = false)
     }
@@ -361,7 +359,6 @@ class MuseoRepository(
         articuloCatalogoDao.actualizarEstadoActivo(id, activo)
     }
 
-    // El borrado desactiva el artículo para conservar el historial.
     suspend fun eliminarArticuloCatalogo(articulo: ArticuloCatalogo) {
         desactivarArticuloCatalogo(articulo.id)
     }

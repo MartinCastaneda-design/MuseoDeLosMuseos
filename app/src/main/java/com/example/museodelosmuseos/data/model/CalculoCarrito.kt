@@ -17,7 +17,6 @@ data class LineaCarrito(@Embedded val articulo: ArticuloCatalogo, val cantidad: 
 
 data class CotizacionCarrito(val lineas: List<LineaCarrito>, val subtotal: Long, val envio: Long, val total: Long)
 
-/** Montos ficticios en pesos CLP; redondeo HALF_UP por línea y aritmética comprobada. */
 object CalculoCarrito {
     fun subtotal(precio: Double, cantidad: Int): Long {
         require(precio.isFinite() && precio > 0 && cantidad > 0) { "Precio o cantidad inválidos." }

@@ -29,7 +29,7 @@ class MuseoApplication : Application(), ImageLoaderFactory {
         config.osmdroidTileCache = osmdroidTileCache
 
         CoroutineScope(Dispatchers.IO).launch {
-            // El callback de Room centraliza la inicialización y no depende del correo editable.
+
             AppDatabase.obtenerInstancia(this@MuseoApplication).openHelper.writableDatabase
         }
     }

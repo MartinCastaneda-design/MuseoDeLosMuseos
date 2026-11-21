@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CompraDao {
-    // La sesión forma parte de la consulta: también invalida el Flow al cambiar de perfil.
+
     @Transaction
     @Query("SELECT p.* FROM pedidos_locales p INNER JOIN sesion_activa s ON s.usuarioId = :actorId WHERE UPPER(s.rol) = 'ADMINISTRADOR' OR (UPPER(s.rol) = 'CLIENTE' AND p.usuarioId = s.usuarioId) ORDER BY p.fechaTimestamp DESC, p.id")
     fun observarHistorialPedidos(actorId: Long): Flow<List<PedidoConLineas>>

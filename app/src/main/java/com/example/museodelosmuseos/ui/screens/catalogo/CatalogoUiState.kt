@@ -41,10 +41,10 @@ data class CatalogoUiState(
     val guardando: Boolean = false,
 
     val terminoBusqueda: String = "",
-    val categoriaSeleccionada: CategoriaArticulo? = null, // null indica visualización de 'Todos'
+    val categoriaSeleccionada: CategoriaArticulo? = null,
 
     val sesion: SesionActiva? = null,
-    val mostrarSoloActivos: Boolean = true, // El Administrador puede alternar para ver inactivos
+    val mostrarSoloActivos: Boolean = true,
 
     val articuloSeleccionadoId: Long? = null,
 
@@ -58,7 +58,6 @@ data class CatalogoUiState(
     val esAdministrador: Boolean
         get() = sesion?.rol?.equals("ADMINISTRADOR", ignoreCase = true) == true
 
-    // El Cliente solo ve artículos activos; el Administrador puede consultar todos.
     val articulosFiltrados: List<ArticuloCatalogo>
         get() {
             return articulos.filter { articulo ->

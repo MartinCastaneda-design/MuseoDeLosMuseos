@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 
-/** Solicitud académica local, pendiente de una futura sincronización. */
 @Entity(
     tableName = "solicitudes_informacion",
     primaryKeys = ["usuarioId", "articuloId"],

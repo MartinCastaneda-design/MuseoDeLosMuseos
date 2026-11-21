@@ -9,7 +9,6 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Copias privadas y duraderas; el proveedor solo comparte la carpeta temporal de cámara. */
 class ArchivosAvatar(context: Context) {
     private val app = context.applicationContext
     fun crearCaptura(): File = File.createTempFile("captura-", ".jpg", File(app.cacheDir, "avatar-camara").apply { mkdirs() })

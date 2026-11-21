@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 
-/** Una línea por producto y usuario. Agregar al carrito no reserva ni descuenta stock. */
 @Entity(
     tableName = "carrito_items",
     primaryKeys = ["usuarioId", "articuloId"],

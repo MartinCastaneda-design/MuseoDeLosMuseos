@@ -322,7 +322,6 @@ fun PantallaCatalogo(
                     )
                 }
 
-                // Espacio inferior para no tapar el último elemento con el FAB
                 item(span = { GridItemSpan(2) }) {
                     Spacer(modifier = Modifier.height(72.dp))
                 }

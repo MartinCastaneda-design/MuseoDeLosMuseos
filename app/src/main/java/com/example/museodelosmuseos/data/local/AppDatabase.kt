@@ -80,7 +80,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** Solo agrega avisos y lecturas. Conserva todas las tablas y registros anteriores. */
         val MIGRACION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""CREATE TABLE IF NOT EXISTS `avisos_locales` (
@@ -116,7 +115,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** Conserva usuarios, favoritos, historial y catálogo al incorporar compras locales. */
         val MIGRACION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""
@@ -141,7 +139,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // Crea el catálogo y su control de precarga sin borrar datos de la versión 2.
         val MIGRACION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -188,7 +185,6 @@ abstract class AppDatabase : RoomDatabase() {
                     .addCallback(object : Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) {
                             super.onOpen(db)
-                            // Respeta la marca de precarga al abrir o migrar la base de datos.
 
                             CoroutineScope(Dispatchers.IO).launch {
                                 inicializarDatos(obtenerInstancia(context))
@@ -201,7 +197,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /** Una sola transacción evita precargas simultáneas y conserva la sesión existente. */
         suspend fun inicializarDatos(database: AppDatabase) = database.withTransaction {
             val adminExiste = database.usuarioDao().obtenerPorRol("ADMINISTRADOR").isNotEmpty()
             val catalogoInicializado = database.controlInicializacionDao().existeClave(CLAVE_CATALOGO_PRECARGADO) > 0
@@ -209,7 +204,6 @@ abstract class AppDatabase : RoomDatabase() {
             actualizarImagenesSiEsNecesario(database)
         }
 
-        // Carga los datos de demostración sin sobrescribir los existentes.
         suspend fun precargarDatosIniciales(database: AppDatabase) {
             val usuariosDemo = listOf(
                 Usuario(
@@ -234,7 +228,7 @@ abstract class AppDatabase : RoomDatabase() {
                     avatar = "avatar_cliente"
                 )
             )
-            // Un correo de perfil puede haber sido editado; no recrear cuentas por su correo anterior.
+
             for (usuarioDemo in usuariosDemo) {
                 if (database.usuarioDao().obtenerPorRol(usuarioDemo.rol).isEmpty()) {
                     database.usuarioDao().insertarSiNoExisten(listOf(usuarioDemo))
@@ -305,8 +299,6 @@ abstract class AppDatabase : RoomDatabase() {
             )
             database.museoDao().insertarSiNoExisten(museosDemo)
             actualizarImagenesSiEsNecesario(database)
-
-            // Precarga una sola vez para conservar los cambios del Administrador.
 
             val controlDao = database.controlInicializacionDao()
             val yaPrecargadoCatalogo = controlDao.existeClave(CLAVE_CATALOGO_PRECARGADO) > 0
@@ -410,11 +402,8 @@ abstract class AppDatabase : RoomDatabase() {
                 controlDao.registrar(ControlInicializacion(clave = CLAVE_CATALOGO_PRECARGADO))
             }
 
-            // La precarga no crea ni cambia sesiones; el acceso se realiza desde Login.
-
         }
 
-        /** Corrige solo las URL genéricas exactas de main, nunca imágenes personalizadas. */
         suspend fun actualizarImagenesSiEsNecesario(database: AppDatabase) {
             for ((codigo, imagen) in ImagenesMuseosDemo.porCodigo) {
                 database.museoDao().actualizarImagenPorQr(codigo, imagen.anteriorUnsplash, imagen.url)

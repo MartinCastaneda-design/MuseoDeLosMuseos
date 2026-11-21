@@ -40,7 +40,7 @@ class LoginViewModel(
                 error = null
             )
         }
-        // El perfil permite cambiar el correo: el acceso demo debe utilizar el dato guardado.
+
         viewModelScope.launch {
             val correoGuardado = repository.correoPerfilDemo(rol.name) ?: return@launch
             _uiState.update { actual ->

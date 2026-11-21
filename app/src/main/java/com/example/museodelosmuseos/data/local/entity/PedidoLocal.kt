@@ -21,7 +21,6 @@ data class PedidoLocal(
     val estado: String = "PENDIENTE_LOCAL"
 )
 
-/** Copia histórica: no depende de cambios ni de la eliminación futura del artículo. */
 @Entity(tableName = "pedido_lineas", primaryKeys = ["pedidoId", "articuloId"],
     foreignKeys = [ForeignKey(entity = PedidoLocal::class, parentColumns = ["id"], childColumns = ["pedidoId"], onDelete = ForeignKey.CASCADE)])
 data class PedidoLinea(

@@ -26,7 +26,6 @@ class CatalogoViewModel(
         observarSesionUsuario()
     }
 
-    // El rol determina si se pueden consultar artículos inactivos.
     private fun observarSesionUsuario() {
         viewModelScope.launch {
             repository.observarSesion().collect { sesion ->
@@ -139,7 +138,6 @@ class CatalogoViewModel(
         }
     }
 
-    // Desactiva sin borrar para conservar el historial de compras.
     fun desactivarArticulo(id: Long) {
         if (!_uiState.value.esAdministrador) return
         viewModelScope.launch {

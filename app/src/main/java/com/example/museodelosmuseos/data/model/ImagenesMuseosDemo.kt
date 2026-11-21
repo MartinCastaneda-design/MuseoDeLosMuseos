@@ -1,6 +1,5 @@
 package com.example.museodelosmuseos.data.model
 
-/** Direcciones exactas del conjunto académico; las URL personalizadas quedan fuera. */
 data class ImagenMuseoDemo(val url: String, val anteriorWikimedia: String, val anteriorUnsplash: String)
 
 object ImagenesMuseosDemo {
