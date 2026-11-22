@@ -1,7 +1,65 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
+
 plugins {
+    jacoco
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+}
+
+jacoco { toolVersion = "0.8.14" }
+
+tasks.withType<Test>().configureEach {
+    extensions.configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+
+val clasesDebug = layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")
+val generados = listOf("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/*_Impl*.class")
+val ambitoLogica = listOf(
+    "**/data/model/**", "**/data/repository/**",
+    "**/ui/screens/**/*ViewModel*", "**/ui/screens/**/*UiState*",
+    "**/ui/screens/**/CampoFormulario*", "**/ui/screens/**/Formulario*"
+)
+
+tasks.register<JacocoReport>("coberturaDebug") {
+    group = "verification"
+    description = "Genera la cobertura unitaria de todo el código Android de producción."
+    dependsOn("testDebugUnitTest")
+    executionData(layout.buildDirectory.file("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"))
+    classDirectories.setFrom(fileTree(clasesDebug) { exclude(generados) })
+    sourceDirectories.setFrom(files("src/main/java"))
+    reports { xml.required.set(true); html.required.set(true) }
+}
+
+tasks.register<JacocoReport>("coberturaLogicaDebug") {
+    group = "verification"
+    description = "Genera la cobertura de todos los ViewModels, estados, modelos y repositorios."
+    dependsOn("testDebugUnitTest")
+    executionData(layout.buildDirectory.file("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"))
+    classDirectories.setFrom(fileTree(clasesDebug) {
+        include(ambitoLogica)
+        exclude(generados)
+    })
+    sourceDirectories.setFrom(files("src/main/java"))
+    reports { xml.required.set(true); html.required.set(true) }
+}
+
+tasks.register<JacocoCoverageVerification>("verificarCoberturaLogicaDebug") {
+    group = "verification"
+    description = "Exige al menos 80 % de líneas y ramas en el conjunto de lógica."
+    dependsOn("coberturaLogicaDebug")
+    executionData(layout.buildDirectory.file("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"))
+    classDirectories.setFrom(fileTree(clasesDebug) { include(ambitoLogica); exclude(generados) })
+    violationRules {
+        rule {
+            limit { counter = "LINE"; minimum = "0.80".toBigDecimal() }
+            limit { counter = "BRANCH"; minimum = "0.80".toBigDecimal() }
+        }
+    }
 }
 
 android {
