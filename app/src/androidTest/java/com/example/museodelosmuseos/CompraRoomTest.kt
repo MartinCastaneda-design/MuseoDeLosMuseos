@@ -136,7 +136,6 @@ class CompraRoomTest {
     @Test fun migraVersionTresSinPerderUsuariosNiCatalogoYPersisteCarrito() = runBlocking {
         val nombre = "compra-migracion-${System.nanoTime()}.db"
         try {
-            // Prepara el esquema base v3 usando las tablas existentes, sin callbacks de demostración.
             Room.databaseBuilder(context, AppDatabase::class.java, nombre).build().let { db ->
                 try { preparar(db) } finally { db.close() }
             }

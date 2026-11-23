@@ -32,7 +32,6 @@ class MuseoRepositoryTest {
         every { db.usuarioDao() } returns usuarios; every { db.museoDao() } returns museos; every { db.favoritoDao() } returns favoritos
         every { db.historialQrDao() } returns historial; every { db.sesionDao() } returns sesiones; every { db.articuloCatalogoDao() } returns catalogo
         every { db.compraDao() } returns compras; every { db.avisoDao() } returns avisos
-        // Ejecuta la lógica del repositorio; las transacciones SQLite reales se prueban en androidTest.
         mockkStatic("androidx.room.RoomDatabaseKt")
         coEvery { db.withTransaction(any<suspend () -> Any?>()) } coAnswers { secondArg<suspend () -> Any?>().invoke() }
         coEvery { sesiones.obtenerSesion() } returns cliente

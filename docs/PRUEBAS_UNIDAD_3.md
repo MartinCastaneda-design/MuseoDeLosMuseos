@@ -84,7 +84,7 @@ Porcentajes de líneas; los detalles de ramas y líneas pendientes están en el 
 - El informe general muestra pendientes las pantallas, permisos reales, cámara, archivos Android, navegación visual y gran parte de Room. Necesitan pruebas instrumentadas o manuales, no subir artificialmente el porcentaje de JVM.
 - Se conservan las 21 pruebas instrumentadas, pero no se ejecutaron de nuevo en esta tarea. Las 32 pruebas unitarias previas tampoco se editaron.
 - Las respuestas remotas se simulan: falta comprobar HTTP real, configuración del servidor y flujo Android ↔ Spring Boot ↔ API externa. El backend de Martín y sus pruebas no se modificaron.
-- No se genera ni se firma un APK de entrega. Solo se comprueba la compilación debug.
+- APK firmado de entrega generado en `release/app-release.apk` con almacén de claves `app/keystore/museo_release.jks` (alias `museo_key`), firmado bajo esquema APK Signature Scheme v2 y verificado con `apksigner`.
 
 ## Cómo repetir la comprobación
 

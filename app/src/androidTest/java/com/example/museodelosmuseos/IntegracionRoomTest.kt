@@ -74,7 +74,6 @@ class IntegracionRoomTest {
                         correo = cliente.correo, rol = cliente.rol, avatar = cliente.avatar))
                 } finally { db.close() }
             }
-            // Base aislada: conserva las tablas v2 y elimina únicamente las incorporadas después.
             SQLiteDatabase.openDatabase(context.getDatabasePath(nombre).path, null, SQLiteDatabase.OPEN_READWRITE).let { sqlite ->
                 try {
                     for (tabla in listOf("preferencias_usuario", "avisos_lecturas", "avisos_locales", "pedido_lineas", "pedidos_locales",
