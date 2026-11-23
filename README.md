@@ -107,6 +107,8 @@ El archivo ejecutable firmado generado se encuentra en:
 * **Ubicación en el repositorio:** `release/app-release.apk` 
 
 
+<img width="666" height="647" alt="image" src="https://github.com/user-attachments/assets/a87157c9-bd8f-4254-8023-b819fc166810" />
+
 
 ---
 
