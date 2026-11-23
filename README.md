@@ -112,6 +112,5 @@ El archivo ejecutable firmado generado se encuentra en:
 
 ---
 
-## 📋 Planificación del Proyecto (Trello y GitHub)
 
 enlace de trello
