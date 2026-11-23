@@ -113,4 +113,4 @@ El archivo ejecutable firmado generado se encuentra en:
 ---
 
 
-enlace de trello
+enlace de trello: https://trello.com/b/ZMMK5x3w/mi-tablero-de-trello
